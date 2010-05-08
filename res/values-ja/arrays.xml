@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string-array name="entries_pref_smtp_sec">
+	<item>なし</item>
+	<item>SMTP over SSL</item>
+	<item>STARTTLS</item>
+  </string-array>
+</resources>

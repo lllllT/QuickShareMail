@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="app_name">QuickShareMail</string>
+
+  <string name="notif_start">Now sending email</string>
+  <string name="notif_title">QuickShareMail : Now Sending</string>
+  <string name="notif_text">%d Email(s) are Remaining</string>
+
+  <string name="msg_need_setup">Need to setup for sending.\nChange setting?</string>
+  <string name="msg_sendto_notfound">Specified data type is not set to send.\nChange setting?\nData type : %s</string>
+  <string name="msg_unsupported_intent">Unsupported data content.</string>
+  <string name="msg_fail_read_sendinfo">Failed to retrieve sending information.</string>
+  <string name="msg_config_send_to">Configure Recipient</string>
+
+  <string name="title_pref_send_from">Sender setting</string>
+  <string name="title_pref_mail_from">Sender e-mail address</string>
+  <string name="title_pref_smtp">SMTP Setting</string>
+  <string name="title_pref_smtp_server">SMTP server</string>
+  <string name="title_pref_smtp_port">Port</string>
+  <string name="title_pref_smtp_sec">Security type</string>
+  <string name="title_pref_smtp_auth_cat">SMTP AUTH</string>
+  <string name="title_pref_smtp_auth">Use SMTP AUTH</string>
+  <string name="title_pref_smtp_user">Username</string>
+  <string name="title_pref_smtp_pass">Password</string>
+
+  <string name="summary_def_pref_mail_from">Sender address is not set</string>
+  <string name="summary_def_pref_smtp_server">SMTP Server is not set</string>
+  <string name="summary_def_pref_smtp_port">Port is not set</string>
+  <string name="summary_pref_smtp_auth">When required sign-in</string>
+  <string name="summary_def_pref_smtp_user">Username is not set</string>
+  <string name="summary_pref_smtp_pass">Password setting</string>
+
+  <string name="title_pref_smtp_ask_gmail">Using Gmail</string>
+  <string name="msg_pref_smtp_ask_gmail">Change SMTP server setting for Gmail?</string>
+  <string name="msg_pref_smtp_port">Invalid port number.</string>
+
+  <string name="title_pref_send_to">Recipient setting</string>
+  <string name="title_pref_send_to_list">Recipient</string>
+  <string name="title_pref_send_to_always_show">Always select Recipient</string>
+  <string name="title_pref_send_to_add">Add Recipient</string>
+  <string name="title_pref_send_to_delete">Delete Recipient</string>
+
+  <string name="summary_pref_send_to_always_show">Show if also single choice</string>
+  <string name="summary_pref_send_to_item_format">Data type : %1$s\nAddress : %2$s</string>
+  <string name="summary_pref_send_to_item_sep">", "</string>
+
+  <string name="msg_send_to_no_address">Recipient address is not set.</string>
+  <string name="msg_send_to_delete">Delete Recipient \"%s\"?</string>
+  <string name="msg_send_to_init">All current settings will be discard.\nInitialize Recipient setting?</string>
+
+  <string name="menu_send_to_edit">Edit Recipient</string>
+  <string name="menu_send_to_delete">Delete Recipient</string>
+  <string name="menu_send_to_add">Add Recipient</string>
+  <string name="menu_send_to_init">Reset to initial setting</string>
+
+  <string name="title_pref_send_to_detail">Edit Recipient</string>
+  <string name="title_pref_send_to_detail_enable">Enable this Recipient</string>
+  <string name="title_pref_send_to_detail_label">Display name</string>
+  <string name="title_pref_send_to_detail_type">Data type</string>
+  <string name="title_pref_send_to_detail_subject">Subject</string>
+  <string name="title_pref_send_to_detail_priority">Display priority</string>
+  <string name="title_pref_send_to_detail_alternate">Use only for alternative</string>
+  <string name="title_pref_send_to_detail_address">Recipient address</string>
+  <string name="title_pref_send_to_detail_add">Add address</string>
+  <string name="title_pref_send_to_detail_edit">Edit address</string>
+  <string name="title_pref_send_to_detail_delete">Delete address</string>
+
+  <string name="summary_pref_send_to_detail_enable">Set selectable this Recipient when data type match</string>
+  <string name="summary_pref_send_to_detail_alternate">Use only when there is no other matched Recipient.</string>
+
+  <string name="msg_send_to_detail_label_zero_len">Display name is not specified.</string>
+  <string name="msg_send_to_detail_prority_invalid">Invalid display priority.</string>
+  <string name="msg_send_to_detail_address_zero_len">Address is not specified.</string>
+  <string name="msg_send_to_detail_delete">Delete address \"%s\"?</string>
+
+  <string name="menu_send_to_address_edit">Edit address</string>
+  <string name="menu_send_to_address_delete">Delete address</string>
+  <string name="menu_send_to_address_add">Add address</string>
+
+  <string name="initial_label_text">Text</string>
+  <string name="initial_label_image">Image</string>
+  <string name="initial_label_movie">Video</string>
+  <string name="initial_label_any">Any type</string>
+
+  <string name="initial_subject_format">[QuickShareMail %1$s] %2$s</string>
+</resources>

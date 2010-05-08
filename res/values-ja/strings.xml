@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="app_name">QuickShareMail</string>
+
+  <string name="notif_start">メール送信中</string>
+  <string name="notif_title">QuickShareMail : 送信中</string>
+  <string name="notif_text">残り%d件のメール</string>
+
+  <string name="msg_need_setup">送信設定が必要です。\n設定を行いますか？</string>
+  <string name="msg_sendto_notfound">データタイプに対応する送信先が設定されていません。\n設定を行いますか？\nデータタイプ : %s</string>
+  <string name="msg_unsupported_intent">非対応のデータです。</string>
+  <string name="msg_fail_read_sendinfo">送信情報の取得に失敗しました。</string>
+  <string name="msg_config_send_to">送信先の設定</string>
+
+  <string name="title_pref_send_from">送信元の設定</string>
+  <string name="title_pref_mail_from">送信元E-mailアドレス</string>
+  <string name="title_pref_smtp">SMTP設定</string>
+  <string name="title_pref_smtp_server">SMTPサーバー</string>
+  <string name="title_pref_smtp_port">ポート</string>
+  <string name="title_pref_smtp_sec">セキュリティの種類</string>
+  <string name="title_pref_smtp_auth_cat">SMTP認証</string>
+  <string name="title_pref_smtp_auth">SMTP認証を使用する</string>
+  <string name="title_pref_smtp_user">ユーザー名</string>
+  <string name="title_pref_smtp_pass">パスワード</string>
+
+  <string name="summary_def_pref_mail_from">Fromアドレスが設定されていません</string>
+  <string name="summary_def_pref_smtp_server">SMTPサーバーが設定されていません</string>
+  <string name="summary_def_pref_smtp_port">ポートが設定されていません</string>
+  <string name="summary_pref_smtp_auth">ログインが必要な場合</string>
+  <string name="summary_def_pref_smtp_user">ユーザー名が設定されていません</string>
+  <string name="summary_pref_smtp_pass">パスワードの設定</string>
+
+  <string name="title_pref_smtp_ask_gmail">Gmailの使用</string>
+  <string name="msg_pref_smtp_ask_gmail">SMTPサーバーの設定をGmail用に変更しますか？</string>
+  <string name="msg_pref_smtp_port">不正なポート番号です。</string>
+
+  <string name="title_pref_send_to">送信先の設定</string>
+  <string name="title_pref_send_to_list">送信先</string>
+  <string name="title_pref_send_to_always_show">送信先を常に選択する</string>
+  <string name="title_pref_send_to_add">送信先の追加</string>
+  <string name="title_pref_send_to_delete">送信先の削除</string>
+
+  <string name="summary_pref_send_to_always_show">選択肢が1つの場合でも常に表示する</string>
+  <string name="summary_pref_send_to_item_format">データタイプ : %1$s\nアドレス : %2$s</string>
+  <string name="summary_pref_send_to_item_sep">", "</string>
+
+  <string name="msg_send_to_no_address">送信先アドレスが設定されていません。</string>
+  <string name="msg_send_to_delete">送信先 \"%s\" を削除しますか？</string>
+  <string name="msg_send_to_init">現在の設定は全て破棄されます。\n送信先設定をリセットしますか？</string>
+
+  <string name="menu_send_to_edit">送信先の編集</string>
+  <string name="menu_send_to_delete">送信先の削除</string>
+  <string name="menu_send_to_add">送信先の追加</string>
+  <string name="menu_send_to_init">初期設定にリセット</string>
+
+  <string name="title_pref_send_to_detail">送信先の編集</string>
+  <string name="title_pref_send_to_detail_enable">この送信先を有効にする</string>
+  <string name="title_pref_send_to_detail_label">表示名</string>
+  <string name="title_pref_send_to_detail_type">データタイプ</string>
+  <string name="title_pref_send_to_detail_subject">件名</string>
+  <string name="title_pref_send_to_detail_priority">表示優先度</string>
+  <string name="title_pref_send_to_detail_alternate">代替としてのみ使用</string>
+  <string name="title_pref_send_to_detail_address">送信先アドレス</string>
+  <string name="title_pref_send_to_detail_add">アドレスの追加</string>
+  <string name="title_pref_send_to_detail_edit">アドレスの編集</string>
+  <string name="title_pref_send_to_detail_delete">アドレスの削除</string>
+
+  <string name="summary_pref_send_to_detail_enable">データタイプが一致した場合にこの送信先を選択可能にする</string>
+  <string name="summary_pref_send_to_detail_alternate">他に一致する送信先がない場合のみ使用する</string>
+
+  <string name="msg_send_to_detail_label_zero_len">表示名が設定されていません。。</string>
+  <string name="msg_send_to_detail_prority_invalid">不正な表示優先度です。</string>
+  <string name="msg_send_to_detail_address_zero_len">アドレスが設定されていません。</string>
+  <string name="msg_send_to_detail_delete">アドレス \"%s\" を削除しますか？</string>
+
+  <string name="menu_send_to_address_edit">アドレスの編集</string>
+  <string name="menu_send_to_address_delete">アドレスの削除</string>
+  <string name="menu_send_to_address_add">アドレスの追加</string>
+
+  <string name="initial_label_text">テキスト</string>
+  <string name="initial_label_image">画像</string>
+  <string name="initial_label_movie">動画</string>
+  <string name="initial_label_any">全ての種類</string>
+</resources>

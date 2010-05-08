@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+			  android:focusable="true"
+			  android:clickable="true"
+			  style="@style/listItem">
+
+  <RelativeLayout style="@style/listItemTexts">
+    <TextView android:id="@+id/list_item_title"
+			  style="@style/listItemTitle" />
+    <TextView android:id="@+id/list_item_summary"
+			  android:layout_below="@id/list_item_title"
+			  android:layout_alignLeft="@id/list_item_title"
+			  style="@style/listItemSummary" />
+  </RelativeLayout>
+
+  <CheckBox android:id="@+id/list_item_checkbox"
+			style="@style/listItemCheckbox" />
+
+</LinearLayout>

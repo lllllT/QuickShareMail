@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+  <item android:title="@string/menu_send_to_add"
+		android:id="@+id/menu_add"
+		android:icon="@android:drawable/ic_menu_add" />
+  <item android:title="@string/menu_send_to_init"
+		android:id="@+id/menu_init"
+		android:icon="@android:drawable/ic_menu_upload" />
+</menu>
