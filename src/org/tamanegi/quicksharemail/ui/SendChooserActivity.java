@@ -58,8 +58,7 @@ public class SendChooserActivity extends Activity
         // send-to address not found?
         if(sendto == null) {
             // notify sendto not found
-            askAndStartConfig(
-                String.format(getString(R.string.msg_sendto_notfound), type));
+            askAndStartConfig(getString(R.string.msg_sendto_notfound, type));
             return;
         }
 
@@ -116,7 +115,7 @@ public class SendChooserActivity extends Activity
         }
 
         new AlertDialog.Builder(this)
-            .setTitle(R.string.app_name)
+            .setTitle(R.string.title_select_sendto)
             .setItems(
                 items,
                 new DialogInterface.OnClickListener() {
@@ -154,7 +153,7 @@ public class SendChooserActivity extends Activity
 
     private void startAndFinish(SendToContent sendto)
     {
-        if(! insertMessage(getIntent(), sendto)) {
+        if(! pushMessage(getIntent(), sendto)) {
             showErrorAndFinish(R.string.msg_unsupported_intent);
             return;
         }
@@ -165,7 +164,7 @@ public class SendChooserActivity extends Activity
         finish();
     }
 
-    private boolean insertMessage(Intent intent, SendToContent sendto)
+    private boolean pushMessage(Intent intent, SendToContent sendto)
     {
         CharSequence text = intent.getCharSequenceExtra(Intent.EXTRA_TEXT);
         Uri stream = (Uri)intent.getParcelableExtra(Intent.EXTRA_STREAM);
@@ -176,6 +175,7 @@ public class SendChooserActivity extends Activity
         MessageContent msg = new MessageContent();
         msg.setType(intent.getType());
         msg.setSubjectFormat(sendto.getSubjectFormat());
+        msg.setBodyFormat(sendto.getBodyFormat());
         msg.setAddress(sendto.getAddress());
         msg.setDate(new Date());
         if(text != null) {

@@ -42,6 +42,7 @@ public class SendToDB
         ContentValues info_vals = new ContentValues();
         info_vals.put(SendinfoColumns.LABEL, info.getLabel());
         info_vals.put(SendinfoColumns.SUBJECT_FORMAT, info.getSubjectFormat());
+        info_vals.put(SendinfoColumns.BODY_FORMAT, info.getBodyFormat());
         info_vals.put(SendinfoColumns.ALLOW_TYPE, info.getAllowType());
         info_vals.put(SendinfoColumns.PRIORITY, info.getPriority());
         info_vals.put(SendinfoColumns.ENABLE, (info.isEnable() ? 1 : 0));
@@ -180,6 +181,8 @@ public class SendToDB
                     info_cur.getString(SendinfoColumns.COL_IDX_LABEL));
                 info[i].setSubjectFormat(
                     info_cur.getString(SendinfoColumns.COL_IDX_SUBJECT_FORMAT));
+                info[i].setBodyFormat(
+                    info_cur.getString(SendinfoColumns.COL_IDX_BODY_FORMAT));
                 info[i].setAllowType(
                     info_cur.getString(SendinfoColumns.COL_IDX_ALLOW_TYPE));
                 info[i].setPriority(
@@ -225,21 +228,24 @@ public class SendToDB
 
         public static final String LABEL = "label";
         public static final String SUBJECT_FORMAT = "subject_format";
+        public static final String BODY_FORMAT = "body_format";
         public static final String ALLOW_TYPE = "allow_type";
         public static final String PRIORITY = "priority";
         public static final String ENABLE = "enable";
         public static final String ALTERNATE = "alternate";
 
         public static final String[] ALL_COLUMNS = new String[] {
-            _ID, LABEL, SUBJECT_FORMAT, ALLOW_TYPE, PRIORITY, ENABLE, ALTERNATE
+            _ID, LABEL, SUBJECT_FORMAT, BODY_FORMAT,
+            ALLOW_TYPE, PRIORITY, ENABLE, ALTERNATE
         };
         public static final int COL_IDX_ID = 0;
         public static final int COL_IDX_LABEL = 1;
         public static final int COL_IDX_SUBJECT_FORMAT = 2;
-        public static final int COL_IDX_ALLOW_TYPE = 3;
-        public static final int COL_IDX_PRIORITY = 4;
-        public static final int COL_IDX_ENABLE = 5;
-        public static final int COL_IDX_ALTERNATE = 6;
+        public static final int COL_IDX_BODY_FORMAT = 3;
+        public static final int COL_IDX_ALLOW_TYPE = 4;
+        public static final int COL_IDX_PRIORITY = 5;
+        public static final int COL_IDX_ENABLE = 6;
+        public static final int COL_IDX_ALTERNATE = 7;
     }
 
     public static final class AddressColumns implements BaseColumns
@@ -271,6 +277,7 @@ public class SendToDB
                        SendinfoColumns._ID + " INTEGER PRIMARY KEY," +
                        SendinfoColumns.LABEL + " TEXT," +
                        SendinfoColumns.SUBJECT_FORMAT + " TEXT," +
+                       SendinfoColumns.BODY_FORMAT + " TEXT," +
                        SendinfoColumns.ALLOW_TYPE + " TEXT," +
                        SendinfoColumns.PRIORITY + " INTEGER," +
                        SendinfoColumns.ENABLE + " INTEGER," +

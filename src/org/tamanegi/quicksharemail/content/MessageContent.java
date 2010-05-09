@@ -7,6 +7,7 @@ public class MessageContent
     private long id;
     private String type;
     private String subject_format;
+    private String body_format;
     private AddressInfo[] address;
     private Date date;
     private String text;
@@ -44,6 +45,16 @@ public class MessageContent
     public void setSubjectFormat(String subjectFormat)
     {
         subject_format = subjectFormat;
+    }
+
+    public String getBodyFormat()
+    {
+        return body_format;
+    }
+
+    public void setBodyFormat(String bodyFormat)
+    {
+        body_format = bodyFormat;
     }
 
     public int getAddressCount()

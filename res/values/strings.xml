@@ -2,18 +2,27 @@
 <resources>
   <string name="app_name">QuickShareMail</string>
 
-  <string name="notif_start">Now sending email</string>
-  <string name="notif_title">QuickShareMail : Now Sending</string>
-  <string name="notif_text">%d Email(s) are Remaining</string>
+  <string name="notify_sending">Now sending email</string>
+  <string name="notify_remain">%d Email(s) are remaining to send.</string>
+  <string name="notify_retry">%d Email(s) are waiting for resend.</string>
+
+  <string name="msg_fail_send">Failed to send email.\n%s</string>
+  <string name="msg_fail_send_security">Permission denined.</string>
+  <string name="msg_invalid_addr">Invalid recipient : %s</string>
+
+  <string name="address_separator">", "</string>
+
+  <string name="title_select_sendto">Choose recipient</string>
 
   <string name="msg_need_setup">Need to setup for sending.\nChange setting?</string>
   <string name="msg_sendto_notfound">Specified data type is not set to send.\nChange setting?\nData type : %s</string>
   <string name="msg_unsupported_intent">Unsupported data content.</string>
   <string name="msg_fail_read_sendinfo">Failed to retrieve sending information.</string>
   <string name="msg_config_send_to">Configure Recipient</string>
+  <string name="msg_fail_request">Failed to process request.</string>
 
   <string name="title_pref_send_from">Sender setting</string>
-  <string name="title_pref_mail_from">Sender e-mail address</string>
+  <string name="title_pref_mail_from">Sender email address</string>
   <string name="title_pref_smtp">SMTP Setting</string>
   <string name="title_pref_smtp_server">SMTP server</string>
   <string name="title_pref_smtp_port">Port</string>
@@ -42,7 +51,6 @@
 
   <string name="summary_pref_send_to_always_show">Show if also single choice</string>
   <string name="summary_pref_send_to_item_format">Data type : %1$s\nAddress : %2$s</string>
-  <string name="summary_pref_send_to_item_sep">", "</string>
 
   <string name="msg_send_to_no_address">Recipient address is not set.</string>
   <string name="msg_send_to_delete">Delete Recipient \"%s\"?</string>
@@ -58,6 +66,7 @@
   <string name="title_pref_send_to_detail_label">Display name</string>
   <string name="title_pref_send_to_detail_type">Data type</string>
   <string name="title_pref_send_to_detail_subject">Subject</string>
+  <string name="title_pref_send_to_detail_body">Message body (when sending attach file)</string>
   <string name="title_pref_send_to_detail_priority">Display priority</string>
   <string name="title_pref_send_to_detail_alternate">Use only for alternative</string>
   <string name="title_pref_send_to_detail_address">Recipient address</string>
@@ -71,7 +80,19 @@
   <string name="msg_send_to_detail_label_zero_len">Display name is not specified.</string>
   <string name="msg_send_to_detail_prority_invalid">Invalid display priority.</string>
   <string name="msg_send_to_detail_address_zero_len">Address is not specified.</string>
+  <string name="msg_send_to_detail_address_invalid">Address is not valid.\n%s</string>
   <string name="msg_send_to_detail_delete">Delete address \"%s\"?</string>
+
+  <string name="title_pref_misc">Other settings</string>
+  <string name="title_pref_show_progress">Show on notification bar when sending</string>
+  <string name="title_retry_send">Resend email</string>
+  <string name="title_ask_retry_send">Resend</string>
+
+  <string name="summary_pref_show_progress">Show icon on notification bar when sending email</string>
+
+  <string name="msg_no_retry">No more emails need to resend.</string>
+  <string name="msg_ask_retry">There are %d email(s) waiting for resend.\nResend email?</string>
+  <string name="button_delete_all">Discard all</string>
 
   <string name="menu_send_to_address_edit">Edit address</string>
   <string name="menu_send_to_address_delete">Delete address</string>
@@ -82,5 +103,6 @@
   <string name="initial_label_movie">Video</string>
   <string name="initial_label_any">Any type</string>
 
-  <string name="initial_subject_format">[QuickShareMail %1$s] %2$s</string>
+  <string name="initial_subject_format">[QuickShareMail %i] %t</string>
+  <string name="initial_body_format">%f</string>
 </resources>

@@ -25,6 +25,9 @@ import org.tamanegi.quicksharemail.content.MessageContent;
 
 public class MailComposer
 {
+    private static final String DEFAULT_CONNECT_TIMEOUT = "60";
+    private static final String DEFAULT_IO_TIMEOUT = "60";
+
     private SmtpConfig smtpConfig;
     private MailConfig mailConfig;
 
@@ -111,6 +114,9 @@ public class MailComposer
             prop.put(prop_prefix + ".starttls.enable", "true");
             prop.put(prop_prefix + ".starttls.required", "true");
         }
+
+        prop.put(prop_prefix + ".connectiontimeout", DEFAULT_CONNECT_TIMEOUT);
+        prop.put(prop_prefix + ".timeout", DEFAULT_IO_TIMEOUT);
 
         Session session = Session.getInstance(prop);
         MimeMessage message = new MimeMessage(session);

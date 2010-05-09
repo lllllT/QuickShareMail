@@ -55,4 +55,17 @@
 			android:targetClass="org.tamanegi.quicksharemail.ui.ConfigSendToActivity" />
   </PreferenceScreen>
 
+  <PreferenceCategory android:title="@string/title_pref_misc">
+	<CheckBoxPreference
+	   android:key="show_progress"
+	   android:title="@string/title_pref_show_progress"
+	   android:summary="@string/summary_pref_show_progress"
+	   android:defaultValue="true" />
+
+	<PreferenceScreen android:title="@string/title_retry_send">
+	  <intent android:targetPackage="org.tamanegi.quicksharemail"
+			  android:targetClass="org.tamanegi.quicksharemail.ui.RetrySendActivity" />
+	</PreferenceScreen>
+  </PreferenceCategory>
+
 </PreferenceScreen>

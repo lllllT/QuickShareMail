@@ -21,6 +21,7 @@ public class SendSetting
     private static final String KEY_SMTP_PASS = "smtp_pass";
     private static final String KEY_SENDTO_CONFIGURED = "sendto_configured";
     private static final String KEY_SENDTO_ALWAYS_SHOW = "sendto_always_show";
+    private static final String KEY_SHOW_PROGRESS = "show_progress";
 
     public SendSetting(Context context)
     {
@@ -32,10 +33,7 @@ public class SendSetting
         if(! (prefs.contains(KEY_MAIL_FROM) &&
               prefs.contains(KEY_SMTP_SERVER) &&
               prefs.contains(KEY_SMTP_PORT) &&
-              prefs.contains(KEY_SMTP_SEC) &&
-              prefs.contains(KEY_SMTP_AUTH) &&
-              prefs.contains(KEY_SMTP_USER) &&
-              prefs.contains(KEY_SMTP_PASS))) {
+              prefs.contains(KEY_SMTP_SEC))) {
             return false;
         }
 
@@ -49,8 +47,8 @@ public class SendSetting
             getSmtpPort();
 
             if(getSmtpAuth()) {
-                if(getSmtpUser().length() == 0 ||
-                   getSmtpPass().length() == 0) {
+                if(! (prefs.contains(KEY_SMTP_USER) &&
+                      prefs.contains(KEY_SMTP_PASS))) {
                     return false;
                 }
             }
@@ -126,6 +124,18 @@ public class SendSetting
     {
         SharedPreferences.Editor edit = prefs.edit();
         edit.putBoolean(KEY_SENDTO_CONFIGURED, configured);
+        edit.commit();
+    }
+
+    public boolean isShowProgressNotification()
+    {
+        return prefs.getBoolean(KEY_SHOW_PROGRESS, true);
+    }
+
+    public void setShowProgressNotification(boolean show)
+    {
+        SharedPreferences.Editor edit = prefs.edit();
+        edit.putBoolean(KEY_SHOW_PROGRESS, show);
         edit.commit();
     }
 }

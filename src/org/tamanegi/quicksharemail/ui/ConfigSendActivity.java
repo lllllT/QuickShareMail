@@ -1,71 +1,33 @@
 package org.tamanegi.quicksharemail.ui;
 
 import org.tamanegi.quicksharemail.R;
-import org.tamanegi.quicksharemail.content.MessageDB;
 import org.tamanegi.quicksharemail.content.SendSetting;
-import org.tamanegi.quicksharemail.service.SenderService;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
-import android.content.Intent;
 import android.os.Bundle;
 import android.preference.CheckBoxPreference;
 import android.preference.EditTextPreference;
 import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceActivity;
-import android.util.Log;
 import android.widget.Toast;
 
 public class ConfigSendActivity extends PreferenceActivity
 {
-    private static final String TAG = "QuickShareMail";
-
     private static final long MAX_TCP_PORT_NUMBER = 65535;
 
     private static final String GMAIL_SERVER = "smtp.gmail.com";
     private static final String GMAIL_PORT = "587";
     private static final String GMAIL_SEC = "starttls";
 
-    private SendSetting setting;
-
     @Override
     public void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
         addPreferencesFromResource(R.xml.pref_send);
-        setting = new SendSetting(this);
 
         setupSummary();
-    }
-
-    @Override
-    protected void onResume()
-    {
-        super.onResume();
-    }
-
-    @Override
-    protected void onPause()
-    {
-        super.onPause();
-
-        // check remain count gt 0
-        MessageDB message_db = new MessageDB(this);
-        int rest_cnt = 0;
-        try {
-            rest_cnt = message_db.getRestCount();
-        }
-        finally{
-            message_db.close();
-        }
-
-        if(setting.checkValid() && rest_cnt > 0) {
-            // request start send, if settings are changed to valid
-            startService(new Intent(SenderService.ACTION_ENQUEUE, null,
-                                    getApplicationContext(),
-                                    SenderService.class));
-        }
     }
 
     private void setupSummary()
@@ -129,12 +91,10 @@ public class ConfigSendActivity extends PreferenceActivity
         try {
             val = Long.parseLong(text);
             if(val < 1 || val > max) {
-                Log.i(TAG, "setup: out of range: " + text);
                 val = def_val;
             }
         }
         catch(NumberFormatException e) {
-            Log.i(TAG, "setup: not number: " + text);
             val = def_val;
         }
 
@@ -287,13 +247,11 @@ public class ConfigSendActivity extends PreferenceActivity
             try {
                 val = Long.parseLong(newValue.toString());
                 if(val < 1 || val > max) {
-                    Log.w(TAG, "pref: out of range: " + newValue);
                     showWarnMessage(warn_id);
                     return false;
                 }
             }
             catch(NumberFormatException e) {
-                Log.w(TAG, "pref: not number: " + newValue);
                 showWarnMessage(warn_id);
                 return false;
             }

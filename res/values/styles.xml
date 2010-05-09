@@ -81,4 +81,12 @@
 	<item name="android:inputType">textEmailAddress</item>
   </style>
 
+  <style name="dialogEditMultiContent"
+		 parent="dialogEditTextContent">
+	<item name="android:singleLine">false</item>
+	<item name="android:maxLines">4</item>
+	<item name="android:scrollbars">vertical</item>
+	<item name="android:gravity">top</item>
+  </style>
+
 </resources>

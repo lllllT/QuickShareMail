@@ -2,15 +2,26 @@
 <resources>
   <string name="app_name">QuickShareMail</string>
 
-  <string name="notif_start">メール送信中</string>
-  <string name="notif_title">QuickShareMail : 送信中</string>
-  <string name="notif_text">残り%d件のメール</string>
+  <string name="notify_sending">メール送信中</string>
+  <string name="notify_remain">残り%d件のメールが送信待ちです。</string>
+  <string name="notify_invalid_addr">不正な送信先メールアドレスがありました。</string>
+  <string name="notify_not_processed">送信できなかったメールがあります。</string>
+  <string name="notify_retry">%d件のメールが再送信待ちです。</string>
+
+  <string name="msg_fail_send">メール送信に失敗しました。\n%s</string>
+  <string name="msg_fail_send_security">アクセス権限がありません。</string>
+  <string name="msg_invalid_addr">不正な送信先 : %s</string>
+
+  <string name="address_separator">", "</string>
+
+  <string name="title_select_sendto">送信先を選択</string>
 
   <string name="msg_need_setup">送信設定が必要です。\n設定を行いますか？</string>
   <string name="msg_sendto_notfound">データタイプに対応する送信先が設定されていません。\n設定を行いますか？\nデータタイプ : %s</string>
   <string name="msg_unsupported_intent">非対応のデータです。</string>
   <string name="msg_fail_read_sendinfo">送信情報の取得に失敗しました。</string>
   <string name="msg_config_send_to">送信先の設定</string>
+  <string name="msg_fail_request">リクエスト処理に失敗しました。</string>
 
   <string name="title_pref_send_from">送信元の設定</string>
   <string name="title_pref_mail_from">送信元E-mailアドレス</string>
@@ -42,7 +53,6 @@
 
   <string name="summary_pref_send_to_always_show">選択肢が1つの場合でも常に表示する</string>
   <string name="summary_pref_send_to_item_format">データタイプ : %1$s\nアドレス : %2$s</string>
-  <string name="summary_pref_send_to_item_sep">", "</string>
 
   <string name="msg_send_to_no_address">送信先アドレスが設定されていません。</string>
   <string name="msg_send_to_delete">送信先 \"%s\" を削除しますか？</string>
@@ -58,6 +68,7 @@
   <string name="title_pref_send_to_detail_label">表示名</string>
   <string name="title_pref_send_to_detail_type">データタイプ</string>
   <string name="title_pref_send_to_detail_subject">件名</string>
+  <string name="title_pref_send_to_detail_body">本文 (添付ファイル送信時)</string>
   <string name="title_pref_send_to_detail_priority">表示優先度</string>
   <string name="title_pref_send_to_detail_alternate">代替としてのみ使用</string>
   <string name="title_pref_send_to_detail_address">送信先アドレス</string>
@@ -71,7 +82,19 @@
   <string name="msg_send_to_detail_label_zero_len">表示名が設定されていません。。</string>
   <string name="msg_send_to_detail_prority_invalid">不正な表示優先度です。</string>
   <string name="msg_send_to_detail_address_zero_len">アドレスが設定されていません。</string>
+  <string name="msg_send_to_detail_address_invalid">アドレスが不正です。\n%s</string>
   <string name="msg_send_to_detail_delete">アドレス \"%s\" を削除しますか？</string>
+
+  <string name="title_pref_misc">その他の設定</string>
+  <string name="title_pref_show_progress">送信中は通知バーに表示する</string>
+  <string name="title_retry_send">メール再送信</string>
+  <string name="title_ask_retry_send">再送信</string>
+
+  <string name="summary_pref_show_progress">メール送信中は通知バーにアイコンを表示する</string>
+
+  <string name="msg_no_retry">再送信が必要なメールはありません。</string>
+  <string name="msg_ask_retry">%d件の再送信待ちメールがあります。\n再送信しますか？</string>
+  <string name="button_delete_all">全て破棄</string>
 
   <string name="menu_send_to_address_edit">アドレスの編集</string>
   <string name="menu_send_to_address_delete">アドレスの削除</string>

@@ -5,6 +5,7 @@ public class SendToContent
     private long id;
     private String label;
     private String subject_format;
+    private String body_format;
     private String allow_type;
     private String[] address;
     private int priority;
@@ -39,6 +40,16 @@ public class SendToContent
     public void setSubjectFormat(String subjectFormat)
     {
         subject_format = subjectFormat;
+    }
+
+    public String getBodyFormat()
+    {
+        return body_format;
+    }
+
+    public void setBodyFormat(String bodyFormat)
+    {
+        body_format = bodyFormat;
     }
 
     public String getAllowType()

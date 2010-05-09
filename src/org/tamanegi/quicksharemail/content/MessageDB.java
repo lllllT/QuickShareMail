@@ -35,6 +35,7 @@ public class MessageDB
     {
         ContentValues msg_vals = new ContentValues();
         msg_vals.put(MsgColumns.SUBJECT_FORMAT, msg.getSubjectFormat());
+        msg_vals.put(MsgColumns.BODY_FORMAT, msg.getBodyFormat());
         msg_vals.put(MsgColumns.DATE, msg.getDate().getTime());
         msg_vals.put(MsgColumns.CONTENT_TYPE, msg.getType());
         msg_vals.put(MsgColumns.CONTENT_TEXT, msg.getText());
@@ -102,6 +103,8 @@ public class MessageDB
                     msg.setId(msg_id);
                     msg.setSubjectFormat(
                         msg_cur.getString(MsgColumns.COL_IDX_SUBJECT_FORMAT));
+                    msg.setBodyFormat(
+                        msg_cur.getString(MsgColumns.COL_IDX_BODY_FORMAT));
                     msg.setDate(
                         new Date(msg_cur.getLong(MsgColumns.COL_IDX_DATE)));
                     msg.setType(
@@ -155,13 +158,27 @@ public class MessageDB
 
     public int getRestCount()
     {
+        return getCount(MsgColumns.RETRY_LATER + " = 0");
+    }
+
+    public int getRetryCount()
+    {
+        return getCount(MsgColumns.RETRY_LATER + " = 1");
+    }
+
+    public int getAllCount()
+    {
+        return getCount(null);
+    }
+
+    private int getCount(String where)
+    {
         synchronized(lock) {
             SQLiteDatabase db = db_helper.getReadableDatabase();
             try {
                 Cursor cur = db.query(
                     MsgColumns.TABLE_NAME, MsgColumns.ALL_COLUMNS,
-                    MsgColumns.RETRY_LATER + " = 0",    // WHERE
-                    null, null, null, null);
+                    where, null, null, null, null);
                 try {
                     return cur.getCount();
                 }
@@ -218,6 +235,23 @@ public class MessageDB
         }
     }
 
+    public void deleteAllMessage()
+    {
+        synchronized(lock) {
+            SQLiteDatabase db = db_helper.getWritableDatabase();
+            try {
+                // delete send-to row
+                db.delete(MsgSendtoColumns.TABLE_NAME, null, null);
+
+                // delete message row
+                db.delete(MsgColumns.TABLE_NAME, null, null);
+            }
+            finally {
+                db.close();
+            }
+        }
+    }
+
     public void clearRetryFlag()
     {
         ContentValues vals = new ContentValues();
@@ -233,25 +267,27 @@ public class MessageDB
     {
         public static final String TABLE_NAME = "message";
 
-        public static final String SUBJECT_FORMAT = "subject_format";
         public static final String DATE = "date";
+        public static final String SUBJECT_FORMAT = "subject_format";
+        public static final String BODY_FORMAT = "body_format";
         public static final String CONTENT_TYPE = "content_type";
         public static final String CONTENT_TEXT = "content_text";
         public static final String CONTENT_STREAM = "content_stream";
         public static final String RETRY_LATER = "retry_later";
 
         public static final String[] ALL_COLUMNS = new String[] {
-            _ID, SUBJECT_FORMAT, DATE,
+            _ID, DATE, SUBJECT_FORMAT, BODY_FORMAT,
             CONTENT_TYPE, CONTENT_TEXT, CONTENT_STREAM,
             RETRY_LATER
         };
         public static final int COL_IDX_ID = 0;
-        public static final int COL_IDX_SUBJECT_FORMAT = 1;
-        public static final int COL_IDX_DATE = 2;
-        public static final int COL_IDX_CONTENT_TYPE = 3;
-        public static final int COL_IDX_CONTENT_TEXT = 4;
-        public static final int COL_IDX_CONTENT_STREAM = 5;
-        public static final int COL_IDX_RETRY_LATER = 6;
+        public static final int COL_IDX_DATE = 1;
+        public static final int COL_IDX_SUBJECT_FORMAT = 2;
+        public static final int COL_IDX_BODY_FORMAT = 3;
+        public static final int COL_IDX_CONTENT_TYPE = 4;
+        public static final int COL_IDX_CONTENT_TEXT = 5;
+        public static final int COL_IDX_CONTENT_STREAM = 6;
+        public static final int COL_IDX_RETRY_LATER = 7;
     }
 
     public static final class MsgSendtoColumns implements BaseColumns
@@ -281,8 +317,9 @@ public class MessageDB
         {
             db.execSQL("CREATE TABLE " + MsgColumns.TABLE_NAME + " (" +
                        MsgColumns._ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
-                       MsgColumns.SUBJECT_FORMAT + " TEXT," +
                        MsgColumns.DATE + " INTEGER," +
+                       MsgColumns.SUBJECT_FORMAT + " TEXT," +
+                       MsgColumns.BODY_FORMAT + " TEXT," +
                        MsgColumns.CONTENT_TYPE + " TEXT," +
                        MsgColumns.CONTENT_TEXT + " TEXT," +
                        MsgColumns.CONTENT_STREAM + " TEXT," +

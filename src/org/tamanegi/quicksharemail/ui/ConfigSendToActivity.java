@@ -163,6 +163,7 @@ public class ConfigSendToActivity extends ListActivity
 
         SendToContent info = new SendToContent();
         info.setSubjectFormat(getString(R.string.initial_subject_format));
+        info.setBodyFormat(getString(R.string.initial_body_format));
         info.setAddress(null);
 
         // text
@@ -443,7 +444,7 @@ public class ConfigSendToActivity extends ListActivity
             for(int i = 0; i < addr_cnt; i++) {
                 if(i != 0) {
                     addrs.append(
-                        getString(R.string.summary_pref_send_to_item_sep));
+                        getString(R.string.address_separator));
                 }
 
                 addrs.append(sendinfo[position].getAddress(i));

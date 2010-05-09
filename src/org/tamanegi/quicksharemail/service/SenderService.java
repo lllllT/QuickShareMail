@@ -1,6 +1,6 @@
 package org.tamanegi.quicksharemail.service;
 
-import java.io.IOException;
+import java.util.Date;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import javax.mail.MessagingException;
@@ -13,6 +13,8 @@ import org.tamanegi.quicksharemail.content.SendSetting;
 import org.tamanegi.quicksharemail.mail.MailComposer;
 import org.tamanegi.quicksharemail.mail.UriDataSource;
 import org.tamanegi.quicksharemail.ui.ConfigSendActivity;
+import org.tamanegi.quicksharemail.ui.RetrySendActivity;
+import org.tamanegi.util.StringCustomFormatter;
 
 import android.app.Notification;
 import android.app.NotificationManager;
@@ -23,19 +25,20 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.IBinder;
 import android.os.PowerManager;
-import android.util.Log;
 import android.widget.Toast;
 
 public class SenderService extends Service
 {
-    private static final String TAG = "QuickShareMail";
-
     public static final String ACTION_ENQUEUE =
         "org.tamanegi.quicksharemail.intent.action.ENQUEUE";
-    public static final String ACTION_NOTIFY =
-        "org.tamanegi.quicksharemail.intent.action.NOTIFY";
+    public static final String ACTION_RETRY =
+        "org.tamanegi.quicksharemail.intent.action.RETRY";
+    public static final String ACTION_DELETE_ALL =
+        "org.tamanegi.quicksharemail.intent.action.DELETE_ALL";
     public static final String ACTION_COMPLETE =
         "org.tamanegi.quicksharemail.intent.action.COMPLETE";
+    public static final String ACTION_SHOW_TOAST =
+        "org.tamanegi.quicksharemail.intent.action.SHOW_TOAST";
 
     public static final String EXTRA_ACTION = "action";
     public static final String EXTRA_DATA = "data";
@@ -45,10 +48,16 @@ public class SenderService extends Service
     public static final String EXTRA_SUBJECT_FORMAT = "subjectFormat";
     public static final String EXTRA_ADDRESS = "address";
 
-    public static final String EXTRA_NOTIFY_MSG = "notifyMsg";
-    public static final String EXTRA_NOTIFY_DURATION = "notifyDuration";
+    public static final String EXTRA_MSG_STRING = "notifyMsg";
+    public static final String EXTRA_MSG_DURATION = "notifyDuration";
 
-    private static final int NOTIFY_ID = 1;
+    private static final int NOTIFY_ID_REMAIN = 0;
+    private static final int NOTIFY_ID_RETRY = 1;
+
+    private static final int REQUEST_TYPE_STOP = 1;
+    private static final int REQUEST_TYPE_ENQUEUE = 2;
+    private static final int REQUEST_TYPE_RETRY = 3;
+    private static final int REQUEST_TYPE_DELETE_ALL = 4;
 
     private static final int SNIP_LENGTH = 40;
 
@@ -58,6 +67,7 @@ public class SenderService extends Service
     private Thread main_thread = null;
     private LinkedBlockingQueue<Object> queue;
 
+    private SendSetting setting;
     private MessageDB message_db;
 
     private PowerManager.WakeLock wakelock;
@@ -81,6 +91,7 @@ public class SenderService extends Service
             });
         queue = new LinkedBlockingQueue<Object>();
 
+        setting = new SendSetting(this);
         message_db = new MessageDB(this);
 
         PowerManager pm = (PowerManager)getSystemService(Context.POWER_SERVICE);
@@ -95,7 +106,7 @@ public class SenderService extends Service
     {
         try {
             is_running = false;
-            queue.put(new Object());
+            pushRequest(REQUEST_TYPE_STOP);
 
             main_thread.join();
         }
@@ -113,75 +124,83 @@ public class SenderService extends Service
     {
         req_cnt += processRequest(intent);
 
-        int rest_cnt = message_db.getRestCount();
-        if(rest_cnt > 0) {
-            int icon = R.drawable.icon;
-            CharSequence txt = getString(R.string.notif_start);
-            long when = System.currentTimeMillis();
-            Notification notify = new Notification(icon, txt, when);
-
-            Intent config_intent = new Intent(getApplicationContext(),
-                                              ConfigSendActivity.class);
-            config_intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            PendingIntent content_intent =
-                PendingIntent.getActivity(this, 0, config_intent, 0);
-            notify.setLatestEventInfo(getApplicationContext(),
-                                      getString(R.string.notif_title),
-                                      String.format(
-                                          getString(R.string.notif_text),
-                                          rest_cnt),
-                                      content_intent);
-            notify.flags |= Notification.FLAG_AUTO_CANCEL;
-            notify.number = rest_cnt;
-
-            NotificationManager nm = (NotificationManager)
-                getSystemService(Context.NOTIFICATION_SERVICE);
-            nm.notify(NOTIFY_ID, notify);
-        }
-        else {
-            NotificationManager nm = (NotificationManager)
-                getSystemService(Context.NOTIFICATION_SERVICE);
-            nm.cancel(NOTIFY_ID);
-        }
-
         if(req_cnt == 0) {
             stopSelfResult(startId);
         }
     }
 
+    private int pushRequest(int req_type)
+    {
+        try {
+            queue.put(new Integer(req_type));
+            return 1;
+        }
+        catch(InterruptedException e) {
+            e.printStackTrace();
+            Toast.makeText(getApplicationContext(),
+                           R.string.msg_fail_request,
+                           Toast.LENGTH_LONG)
+                .show();
+
+            return 0;
+        }
+    }
+
+    private int popRequest() throws InterruptedException
+    {
+        return ((Integer)queue.take()).intValue();
+    }
+
     private void mainLoop()
     {
-        Log.v(TAG, "mainLoop: start");
         try {
             while(is_running) {
-                Log.v(TAG, "mainLoop: take");
-                queue.take();
+                int req = popRequest();
                 if(! is_running) {
-                    Log.v(TAG, "mainLoop: stop");
+                    return;
+                }
+
+                switch(req) {
+                case REQUEST_TYPE_STOP:
+                    return;
+
+                case REQUEST_TYPE_RETRY:
+                    clearRetryFlag();
+                    break;
+
+                case REQUEST_TYPE_DELETE_ALL:
+                    deleteAllMessage();
                     break;
                 }
 
                 wakelock.acquire();
                 try {
                     while(is_running) {
+                        // show remaining
+                        updateRemainNotification();
+
                         // send message, until message exists
-                        Log.v(TAG, "mainLoop: send");
                         if(! sendMessage()) {
                             break;
                         }
                     }
-                    Log.v(TAG, "mainLoop: finish send");
-                    finishSendMessage();
                 }
                 finally {
                     wakelock.release();
                 }
 
-                Log.v(TAG, "mainLoop: complete");
-                // send complete count
-                startService(new Intent(ACTION_COMPLETE, null,
-                                        getApplicationContext(),
-                                        SenderService.class));
+                if(! is_running) {
+                    return;
+                }
+
+                // show remaining
+                updateRemainNotification();
+
+                // complete
+                startService(
+                    new Intent(SenderService.ACTION_COMPLETE, null,
+                               getApplicationContext(),
+                               SenderService.class));
             }
         }
         catch(Exception e) {
@@ -192,39 +211,29 @@ public class SenderService extends Service
     private int processRequest(Intent intent)
     {
         if(intent == null) {
-            Log.v(TAG, "SenderService#processRequest: null intent");
             return 0;
         }
 
         String action = intent.getAction();
-        Log.v(TAG, "SenderService#processRequest: " + action);
 
         if(ACTION_ENQUEUE.equals(action)) {
-            Log.v(TAG, "SenderService#processRequest: enqueue");
-            try {
-                queue.put(new Object());
-                return 1;
-            }
-            catch(InterruptedException e) {
-                e.printStackTrace();
-
-                // todo: notify err
-                String msg = "Failed to send";
-                int duration = Toast.LENGTH_LONG;
-                Toast.makeText(getApplicationContext(), msg, duration).show();
-                return 0;
-            }
+            return pushRequest(REQUEST_TYPE_ENQUEUE);
         }
-        else if(ACTION_NOTIFY.equals(action)) {
-            Log.v(TAG, "SenderService#processRequest: notify");
-            String msg = intent.getStringExtra(EXTRA_NOTIFY_MSG);
-            int duration = intent.getIntExtra(EXTRA_NOTIFY_DURATION,
-                                              Toast.LENGTH_SHORT);
-            Toast.makeText(getApplicationContext(), msg, duration).show();
+        else if(ACTION_RETRY.equals(action)) {
+            return pushRequest(REQUEST_TYPE_RETRY);
+        }
+        else if(ACTION_DELETE_ALL.equals(action)) {
+            return pushRequest(REQUEST_TYPE_DELETE_ALL);
+        }
+        else if(ACTION_SHOW_TOAST.equals(action)) {
+            Toast.makeText(getApplicationContext(),
+                           intent.getStringExtra(EXTRA_MSG_STRING),
+                           intent.getIntExtra(EXTRA_MSG_DURATION,
+                                              Toast.LENGTH_LONG)).
+                show();
             return 0;
         }
         else if(ACTION_COMPLETE.equals(action)) {
-            Log.v(TAG, "SenderService#processRequest: complete");
             return -1;
         }
         else {
@@ -245,47 +254,56 @@ public class SenderService extends Service
             send(msg);
         }
 
-        // todo: check invalid address
-
         // delete processed field
         message_db.delete(msg);
+
+        // check invalid address
+        checkInvalidAddress(msg);
 
         return true;
     }
 
-    private void finishSendMessage()
+    private void clearRetryFlag()
     {
         // clear retry-later flag
         message_db.clearRetryFlag();
     }
 
+    private void deleteAllMessage()
+    {
+        message_db.deleteAllMessage();
+    }
+
     private void send(MessageContent msg)
     {
         try {
-            SendSetting setting = new SendSetting(this);
-
             String type = msg.getType();
             String body = msg.getText();
+            String snip_body = snipBody(body);
             String stream = msg.getStream();
-            Uri uri = null;
             UriDataSource attach_src = null;
 
             // for attachment
             if(stream != null) {
-                uri = Uri.parse(stream);
+                Uri uri = Uri.parse(stream);
                 attach_src = new UriDataSource(getContentResolver(), uri);
-
-                if(body == null) {
-                    body = attach_src.getName();
-                    type = "text/plain";
-                }
             }
+            String filename =
+                (attach_src != null ? attach_src.getName() : null);
 
             // subject
-            String subject_add = snipBody(body);
-            String subject = String.format(msg.getSubjectFormat(),
-                                           String.valueOf(msg.getId()),
-                                           subject_add); // todo: subject
+            StringCustomFormatter formatter =
+                createFormatter(msg.getId(),
+                                snip_body, filename,
+                                msg.getDate());
+            String subject = formatter.format(msg.getSubjectFormat());
+
+            // body
+            if(body == null) {
+                body = (attach_src != null ?
+                        formatter.format(msg.getBodyFormat()) : "");
+                type = "text/plain";
+            }
 
             // smtp settings
             String server = setting.getSmtpServer();
@@ -317,7 +335,7 @@ public class SenderService extends Service
                                             msg.getDate());
 
             mail.setBody(new ByteArrayDataSource(body, type));
-            if(uri != null) {
+            if(attach_src != null) {
                 mail.addAttachFile(attach_src);
             }
 
@@ -326,39 +344,159 @@ public class SenderService extends Service
             composer.send();
         }
         catch(MessagingException e) {
-            // todo: err
             e.printStackTrace();
-            showToast("QuickShareMail: failed: " + e, Toast.LENGTH_LONG);
+            showWarnToast(getString(R.string.msg_fail_send, e.getMessage()));
             return;
         }
-        catch(IOException e) {
-            // todo: err
+        catch(SecurityException e) {
             e.printStackTrace();
-            showToast("QuickShareMail: failed: " + e, Toast.LENGTH_LONG);
+            showWarnToast(
+                getString(R.string.msg_fail_send,
+                          getString(R.string.msg_fail_send_security)));
             return;
+        }
+        catch(Exception e) {
+            e.printStackTrace();
+            showWarnToast(getString(R.string.msg_fail_send, e.getMessage()));
+            return;
+        }
+    }
+
+    private StringCustomFormatter createFormatter(long id,
+                                                  String snip_body,
+                                                  String filename,
+                                                  Date date)
+    {
+        return new StringCustomFormatter(
+            new StringCustomFormatter.IdValue[] {
+                new StringCustomFormatter.IdValue('i', String.valueOf(id)),
+                new StringCustomFormatter.IdValue('s', snip_body),
+                new StringCustomFormatter.IdValue('f', filename),
+                new StringCustomFormatter.IdValue(
+                    't', (snip_body != null ? snip_body :
+                          filename != null ? filename : "")),
+                new StringCustomFormatter.IdValue(
+                    'T', String.format("%tT", date)),
+                new StringCustomFormatter.IdValue(
+                    'F', String.format("%tF", date)),
+            });
+    }
+
+    private void checkInvalidAddress(MessageContent msg)
+    {
+        StringBuilder invalid = new StringBuilder();
+        String sep = getString(R.string.address_separator);
+
+        int invalid_cnt = 0;
+        for(int i = 0; i < msg.getAddressCount(); i++) {
+            MessageContent.AddressInfo addr = msg.getAddressInfo(i);
+
+            if(addr.isProcessed() && (! addr.isValid())) {
+                if(invalid_cnt > 0) {
+                    invalid.append(sep);
+                }
+                invalid.append(addr.getAddress());
+                invalid_cnt += 1;
+            }
         }
 
-        // todo: notify success
-        showToast("QuickShareMail: successed to send", Toast.LENGTH_SHORT);
+        if(invalid_cnt > 0) {
+            showWarnToast(getString(R.string.notify_invalid_addr, invalid));
+        }
     }
 
     private String snipBody(String body)
     {
+        if(body == null) {
+            return null;
+        }
+
         String nospbody = body.replaceAll("\\s+", " ");
         return (nospbody.length() <= SNIP_LENGTH ?
                 nospbody : nospbody.substring(0, SNIP_LENGTH - 3) + "...");
     }
 
-    // todo: how to show warn, etc
-    private void showToast(String msg, int duration)
+    private void updateRemainNotification()
     {
-        Intent notify = new Intent(ACTION_NOTIFY, null,
+        // remaining count
+        if(setting.isShowProgressNotification()) {
+            int rest_cnt = message_db.getRestCount();
+            if(rest_cnt > 0) {
+                showNotification(NOTIFY_ID_REMAIN,
+                                 R.drawable.status,
+                                 null,
+                                 getString(R.string.notify_sending),
+                                 getString(R.string.notify_remain, rest_cnt),
+                                 ConfigSendActivity.class,
+                                 Notification.FLAG_ONGOING_EVENT,
+                                 rest_cnt);
+            }
+            else {
+                cancelNotification(NOTIFY_ID_REMAIN);
+            }
+        }
+        else {
+            cancelNotification(NOTIFY_ID_REMAIN);
+        }
+
+        // retry-later count
+        int retry_cnt = message_db.getRetryCount();
+        if(retry_cnt > 0) {
+            String text = getString(R.string.notify_retry, retry_cnt);
+            showNotification(NOTIFY_ID_RETRY,
+                             R.drawable.status,
+                             text,
+                             getString(R.string.notify_not_processed),
+                             text,
+                             RetrySendActivity.class,
+                             Notification.FLAG_AUTO_CANCEL,
+                             retry_cnt);
+        }
+        else {
+            cancelNotification(NOTIFY_ID_RETRY);
+        }
+    }
+
+    private void showNotification(int id, int icon,
+                                  CharSequence ticker_text,
+                                  CharSequence content_title,
+                                  CharSequence content_text,
+                                  Class<?> activity_class,
+                                  int flags, int number)
+    {
+        long when = System.currentTimeMillis();
+        Notification notify = new Notification(icon, ticker_text, when);
+
+        Intent intent = new Intent(getApplicationContext(), activity_class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        PendingIntent content_intent =
+            PendingIntent.getActivity(this, 0, intent, 0);
+        notify.setLatestEventInfo(getApplicationContext(),
+                                  content_title,
+                                  content_text,
+                                  content_intent);
+        notify.flags = flags;
+        notify.number = number;
+
+        NotificationManager nm = (NotificationManager)
+            getSystemService(Context.NOTIFICATION_SERVICE);
+        nm.notify(id, notify);
+    }
+
+    private void cancelNotification(int id)
+    {
+        NotificationManager nm = (NotificationManager)
+            getSystemService(Context.NOTIFICATION_SERVICE);
+        nm.cancel(id);
+    }
+
+    private void showWarnToast(String msg)
+    {
+        Intent intent = new Intent(SenderService.ACTION_SHOW_TOAST, null,
                                    getApplicationContext(),
                                    SenderService.class);
-
-        notify.putExtra(EXTRA_NOTIFY_MSG, msg);
-        notify.putExtra(EXTRA_NOTIFY_DURATION, duration);
-
-        startService(notify);
+        intent.putExtra(EXTRA_MSG_STRING, msg);
+        intent.putExtra(EXTRA_MSG_DURATION, Toast.LENGTH_LONG);
+        startService(intent);
     }
 }

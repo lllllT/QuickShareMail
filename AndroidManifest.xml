@@ -34,6 +34,9 @@
 			  android:label="@string/title_pref_send_to" />
 	<activity android:name=".ui.ConfigSendToDetailActivity"
 			  android:label="@string/title_pref_send_to_detail" />
+	<activity android:name=".ui.RetrySendActivity"
+			  android:theme="@android:style/Theme.Translucent.NoTitleBar"
+			  android:excludeFromRecents="true" />
 
 	<service android:name=".service.SenderService" />
 

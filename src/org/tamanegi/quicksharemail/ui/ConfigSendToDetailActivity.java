@@ -1,5 +1,8 @@
 package org.tamanegi.quicksharemail.ui;
 
+import javax.mail.internet.AddressException;
+import javax.mail.internet.InternetAddress;
+
 import org.tamanegi.quicksharemail.R;
 import org.tamanegi.quicksharemail.content.SendToContent;
 import org.tamanegi.quicksharemail.content.SendToDB;
@@ -36,6 +39,7 @@ public class ConfigSendToDetailActivity extends ListActivity
     private TextView label_summary;
     private TextView type_summary;
     private TextView subject_summary;
+    private TextView body_summary;
     private TextView priority_summary;
     private CheckBox alternate_check;
 
@@ -67,6 +71,9 @@ public class ConfigSendToDetailActivity extends ListActivity
         subject_summary =
             setupTextItemHeader(R.string.title_pref_send_to_detail_subject,
                                 new SubjectOnClickListener());
+        body_summary =
+            setupTextItemHeader(R.string.title_pref_send_to_detail_body,
+                                new BodyOnClickListener());
         priority_summary =
             setupTextItemHeader(R.string.title_pref_send_to_detail_priority,
                                 new PriorityOnClickListener());
@@ -114,6 +121,8 @@ public class ConfigSendToDetailActivity extends ListActivity
                         detailinfo.setLabel(text.toString());
                         detailinfo.setSubjectFormat(
                             getString(R.string.initial_subject_format));
+                        detailinfo.setBodyFormat(
+                            getString(R.string.initial_body_format));
                         detailinfo.setAllowType("*/*");
                         detailinfo.setPriority(50);
                         detailinfo.setEnable(false);
@@ -255,6 +264,7 @@ public class ConfigSendToDetailActivity extends ListActivity
         label_summary.setText(detailinfo.getLabel());
         type_summary.setText(detailinfo.getAllowType());
         subject_summary.setText(detailinfo.getSubjectFormat());
+        body_summary.setText(detailinfo.getBodyFormat());
         priority_summary.setText(String.valueOf(detailinfo.getPriority()));
         alternate_check.setChecked(detailinfo.isAlternate());
 
@@ -310,6 +320,9 @@ public class ConfigSendToDetailActivity extends ListActivity
                 new DialogInterface.OnCancelListener() {
                     public void onCancel(DialogInterface dialog) {
                         dialog.dismiss();
+                        if(on_cancel != null) {
+                            on_cancel.onTextEdited(text_view.getText());
+                        }
                     }
                 })
             .create();
@@ -320,6 +333,11 @@ public class ConfigSendToDetailActivity extends ListActivity
     private void showWarnToast(int str_id)
     {
         Toast.makeText(this, str_id, Toast.LENGTH_LONG).show();
+    }
+
+    private void showWarnToast(String str)
+    {
+        Toast.makeText(this, str, Toast.LENGTH_LONG).show();
     }
 
     private void showWarnMessage(int msg_id)
@@ -358,6 +376,27 @@ public class ConfigSendToDetailActivity extends ListActivity
                     if(text.length() < 1) {
                         showWarnToast(
                             R.string.msg_send_to_detail_address_zero_len);
+                        return;
+                    }
+
+                    try {
+                        InternetAddress[] addr =
+                            InternetAddress.parse(text.toString(), true);
+                        if(addr.length != 1) {
+                            showWarnToast(
+                                getString(
+                                    R.string.msg_send_to_detail_address_invalid,
+                                    "\"" + text + "\""));
+                        }
+                    }
+                    catch(AddressException e) {
+                        String ref = e.getRef();
+                        String msg =
+                            (ref == null ? "" : " in string \"" + ref + "\"");
+                        showWarnToast(
+                            getString(
+                                R.string.msg_send_to_detail_address_invalid,
+                                e.getMessage() + msg));
                         return;
                     }
 
@@ -515,6 +554,26 @@ public class ConfigSendToDetailActivity extends ListActivity
         public void onTextEdited(CharSequence text)
         {
             detailinfo.setSubjectFormat(text.toString());
+            sendto_db.updateSendinfo(detailinfo);
+            updateData();
+        }
+    }
+
+    private class BodyOnClickListener
+        implements View.OnClickListener, OnTextEditedListener
+    {
+        public void onClick(View v)
+        {
+            // todo: show format template?
+            showEditText(detailinfo.getBodyFormat(),
+                         R.string.title_pref_send_to_detail_body,
+                         R.layout.dialog_editmulti,
+                         this, null);
+        }
+
+        public void onTextEdited(CharSequence text)
+        {
+            detailinfo.setBodyFormat(text.toString());
             sendto_db.updateSendinfo(detailinfo);
             updateData();
         }
