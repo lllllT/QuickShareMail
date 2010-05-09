@@ -1,0 +1,13 @@
+About QuickShareMail:
+QuickShareMail is in public domain except for under "libs" directory.
+
+
+javamail-android:
+Following files are based opensourced version of JavaMail and activation (JAF)
+modified by Alexandre Thiel for android port.
+These files are licensed under the Apache License 2.0.
+  libs/mail.jar
+  libs/activation.jar
+  libs/additionnal.jar
+
+For more information, see: http://code.google.com/p/javamail-android/
