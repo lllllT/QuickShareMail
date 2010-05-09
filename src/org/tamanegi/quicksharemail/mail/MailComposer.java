@@ -25,8 +25,8 @@ import org.tamanegi.quicksharemail.content.MessageContent;
 
 public class MailComposer
 {
-    private static final String DEFAULT_CONNECT_TIMEOUT = "60";
-    private static final String DEFAULT_IO_TIMEOUT = "60";
+    private static final String DEFAULT_CONNECT_TIMEOUT = "60000";
+    private static final String DEFAULT_IO_TIMEOUT = "60000";
 
     private SmtpConfig smtpConfig;
     private MailConfig mailConfig;

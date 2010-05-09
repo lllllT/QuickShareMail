@@ -4,6 +4,8 @@
 
   <string name="notify_sending">Now sending email</string>
   <string name="notify_remain">%d Email(s) are remaining to send.</string>
+  <string name="notify_invalid_addr">There is invalid recipient address.</string>
+  <string name="notify_not_processed">There is not processed email.</string>
   <string name="notify_retry">%d Email(s) are waiting for resend.</string>
 
   <string name="msg_fail_send">Failed to send email.\n%s</string>
