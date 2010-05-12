@@ -1,5 +1,8 @@
 package org.tamanegi.quicksharemail.ui;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.tamanegi.quicksharemail.R;
 import org.tamanegi.quicksharemail.content.SendSetting;
 import org.tamanegi.quicksharemail.content.SendToContent;
@@ -27,8 +30,9 @@ public class ConfigSendToActivity extends ListActivity
     private SendSetting setting;
     private SendToDB sendto_db;
 
-    private SendinfoAdapter adapter;
     private SendToContent[] sendinfo;
+    private SendinfoAdapter adapter;
+    private Map<View, View.OnClickListener> clickListenerMap;
 
     private LayoutInflater inflater;
 
@@ -44,32 +48,33 @@ public class ConfigSendToActivity extends ListActivity
         ListView list = getListView();
         list.setItemsCanFocus(true);
 
+        clickListenerMap = new HashMap<View, View.OnClickListener>();
+        list.setOnItemClickListener(
+            new AdapterView.OnItemClickListener() {
+                public void onItemClick(AdapterView<?> parent, View view,
+                                        int position, long id) {
+                    View.OnClickListener l = clickListenerMap.get(view);
+                    if(l != null) {
+                        l.onClick(view);
+                    }
+                }
+            });
+
         inflater = (LayoutInflater)getSystemService(LAYOUT_INFLATER_SERVICE);
 
         // always show checkbox
-        View always_show = inflater.inflate(R.layout.list_checkitem, null);
-        always_show.setOnClickListener(new AlwaysShowOnClickListener());
-
-        ((TextView)always_show.findViewById(R.id.list_item_title)).
-            setText(R.string.title_pref_send_to_always_show);
-        ((TextView)always_show.findViewById(R.id.list_item_summary)).
-            setText(R.string.summary_pref_send_to_always_show);
         CheckBox always_show_check =
-            (CheckBox)always_show.findViewById(R.id.list_item_checkbox);
+            addCheckItemHeader(R.string.title_pref_send_to_always_show,
+                               R.string.summary_pref_send_to_always_show,
+                               new AlwaysShowOnClickListener());
         always_show_check.setChecked(setting.isSendToAlwaysShow());
 
-        list.addHeaderView(always_show, null, true);
-
         // separator
-        View list_sep = inflater.inflate(R.layout.list_separator, null);
-        ((TextView)list_sep).setText(R.string.title_pref_send_to_list);
-        list.addHeaderView(list_sep, null, false);
+        addTextViewHeader(R.string.title_pref_send_to_list);
 
         // add-new footer
-        View list_add = inflater.inflate(R.layout.list_additem, null);
-        ((TextView)list_add).setText(R.string.title_pref_send_to_add);
-        list_add.setOnClickListener(new AddOnClickListener());
-        list.addFooterView(list_add, null, true);
+        addTextItemFooter(R.string.title_pref_send_to_add,
+                          new AddOnClickListener());
 
         // initialize data, if not yet configured
         if(! setting.isSendToConfigured()) {
@@ -132,6 +137,10 @@ public class ConfigSendToActivity extends ListActivity
     {
         AdapterView.AdapterContextMenuInfo minfo =
             (AdapterView.AdapterContextMenuInfo)menuinfo;
+        if(minfo.id < 0) {
+            return;
+        }
+
         getMenuInflater().inflate(R.menu.config_send_to_context, menu);
         menu.setHeaderTitle(sendinfo[(int)minfo.id].getLabel());
     }
@@ -155,6 +164,41 @@ public class ConfigSendToActivity extends ListActivity
         }
 
         return super.onContextItemSelected(item);
+    }
+
+    private CheckBox addCheckItemHeader(int title_id, int summary_id,
+                                        View.OnClickListener listener)
+    {
+        View view = inflater.inflate(R.layout.list_checkitem, null);
+        clickListenerMap.put(view, listener);
+
+        ((TextView)view.findViewById(R.id.list_item_title)).setText(title_id);
+        ((TextView)
+         view.findViewById(R.id.list_item_summary)).setText(summary_id);
+        CheckBox check = (CheckBox)view.findViewById(R.id.list_item_checkbox);
+
+        getListView().addHeaderView(view, null, true);
+
+        return check;
+    }
+
+    private void addTextViewHeader(int title_id)
+    {
+        TextView view =
+            (TextView)inflater.inflate(R.layout.list_separator, null);
+        view.setText(title_id);
+
+        getListView().addHeaderView(view, null, false);
+    }
+
+    private void addTextItemFooter(int title_id,
+                                     View.OnClickListener listener)
+    {
+        TextView view = (TextView)inflater.inflate(R.layout.list_additem, null);
+        clickListenerMap.put(view, listener);
+        view.setText(title_id);
+
+        getListView().addFooterView(view, null, true);
     }
 
     private void fillInitSendTo()

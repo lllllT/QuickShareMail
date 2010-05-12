@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-			  android:focusable="true"
-			  android:clickable="true"
 			  style="@style/listItem">
 
   <RelativeLayout style="@style/listItemTexts">
@@ -14,6 +12,8 @@
   </RelativeLayout>
 
   <CheckBox android:id="@+id/list_item_checkbox"
+			android:focusable="false"
+			android:clickable="false"
 			style="@style/listItemCheckbox" />
 
 </LinearLayout>

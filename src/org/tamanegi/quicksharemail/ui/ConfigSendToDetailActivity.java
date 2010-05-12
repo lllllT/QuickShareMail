@@ -1,5 +1,8 @@
 package org.tamanegi.quicksharemail.ui;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 
@@ -33,6 +36,7 @@ public class ConfigSendToDetailActivity extends ListActivity
     private long info_id;
     private SendToContent detailinfo = null;
     private AddressAdapter adapter;
+    private Map<View, View.OnClickListener> clickListenerMap;
 
     private LayoutInflater inflater;
     private CheckBox enable_check;
@@ -55,39 +59,51 @@ public class ConfigSendToDetailActivity extends ListActivity
         ListView list = getListView();
         list.setItemsCanFocus(true);
 
+        clickListenerMap = new HashMap<View, View.OnClickListener>();
+        list.setOnItemClickListener(
+            new AdapterView.OnItemClickListener() {
+                public void onItemClick(AdapterView<?> parent, View view,
+                                        int position, long id) {
+                    View.OnClickListener l = clickListenerMap.get(view);
+                    if(l != null) {
+                        l.onClick(view);
+                    }
+                }
+            });
+
         inflater = (LayoutInflater)getSystemService(LAYOUT_INFLATER_SERVICE);
 
         // headers
         enable_check =
-            setupCheckItemHeader(R.string.title_pref_send_to_detail_enable,
-                                 R.string.summary_pref_send_to_detail_enable,
-                                 new EnableOnClickListener());
+            addCheckItemHeader(R.string.title_pref_send_to_detail_enable,
+                               R.string.summary_pref_send_to_detail_enable,
+                               new EnableOnClickListener());
         label_summary =
-            setupTextItemHeader(R.string.title_pref_send_to_detail_label,
-                                new LabelOnClickListener());
+            addTextItemHeader(R.string.title_pref_send_to_detail_label,
+                              new LabelOnClickListener());
         type_summary =
-            setupTextItemHeader(R.string.title_pref_send_to_detail_type,
-                                new TypeOnClickListener());
+            addTextItemHeader(R.string.title_pref_send_to_detail_type,
+                              new TypeOnClickListener());
         subject_summary =
-            setupTextItemHeader(R.string.title_pref_send_to_detail_subject,
-                                new SubjectOnClickListener());
+            addTextItemHeader(R.string.title_pref_send_to_detail_subject,
+                              new SubjectOnClickListener());
         body_summary =
-            setupTextItemHeader(R.string.title_pref_send_to_detail_body,
-                                new BodyOnClickListener());
+            addTextItemHeader(R.string.title_pref_send_to_detail_body,
+                              new BodyOnClickListener());
         priority_summary =
-            setupTextItemHeader(R.string.title_pref_send_to_detail_priority,
-                                new PriorityOnClickListener());
+            addTextItemHeader(R.string.title_pref_send_to_detail_priority,
+                              new PriorityOnClickListener());
         alternate_check =
-            setupCheckItemHeader(R.string.title_pref_send_to_detail_alternate,
-                                 R.string.summary_pref_send_to_detail_alternate,
-                                 new AlternateOnClickListener());
+            addCheckItemHeader(R.string.title_pref_send_to_detail_alternate,
+                               R.string.summary_pref_send_to_detail_alternate,
+                               new AlternateOnClickListener());
 
         // address separator
-        setupTextViewHeader(R.string.title_pref_send_to_detail_address);
+        addTextViewHeader(R.string.title_pref_send_to_detail_address);
 
         // add-new footer
-        setupTextViewFooter(R.string.title_pref_send_to_detail_add,
-                            new AddOnClickListener());
+        addTextItemFooter(R.string.title_pref_send_to_detail_add,
+                          new AddOnClickListener());
 
         // adapter
         adapter = new AddressAdapter();
@@ -180,6 +196,10 @@ public class ConfigSendToDetailActivity extends ListActivity
     {
         AdapterView.AdapterContextMenuInfo minfo =
             (AdapterView.AdapterContextMenuInfo)menuinfo;
+        if(minfo.id < 0) {
+            return;
+        }
+
         getMenuInflater().inflate(R.menu.config_send_to_detail_context, menu);
         menu.setHeaderTitle(detailinfo.getAddress((int)minfo.id));
     }
@@ -205,11 +225,11 @@ public class ConfigSendToDetailActivity extends ListActivity
         return super.onContextItemSelected(item);
     }
 
-    private CheckBox setupCheckItemHeader(int title_id, int summary_id,
-                                          View.OnClickListener listener)
+    private CheckBox addCheckItemHeader(int title_id, int summary_id,
+                                        View.OnClickListener listener)
     {
         View view = inflater.inflate(R.layout.list_checkitem, null);
-        view.setOnClickListener(listener);
+        clickListenerMap.put(view, listener);
 
         ((TextView)view.findViewById(R.id.list_item_title)).setText(title_id);
         ((TextView)
@@ -221,11 +241,11 @@ public class ConfigSendToDetailActivity extends ListActivity
         return check;
     }
 
-    private TextView setupTextItemHeader(int title_id,
-                                         View.OnClickListener listener)
+    private TextView addTextItemHeader(int title_id,
+                                       View.OnClickListener listener)
     {
         View view = inflater.inflate(R.layout.list_textitem, null);
-        view.setOnClickListener(listener);
+        clickListenerMap.put(view, listener);
 
         ((TextView)view.findViewById(R.id.list_item_title)).setText(title_id);
         TextView summary = (TextView)view.findViewById(R.id.list_item_summary);
@@ -235,7 +255,7 @@ public class ConfigSendToDetailActivity extends ListActivity
         return summary;
     }
 
-    private void setupTextViewHeader(int title_id)
+    private void addTextViewHeader(int title_id)
     {
         TextView view =
             (TextView)inflater.inflate(R.layout.list_separator, null);
@@ -244,11 +264,11 @@ public class ConfigSendToDetailActivity extends ListActivity
         getListView().addHeaderView(view, null, false);
     }
 
-    private void setupTextViewFooter(int title_id,
+    private void addTextItemFooter(int title_id,
                                      View.OnClickListener listener)
     {
         TextView view = (TextView)inflater.inflate(R.layout.list_additem, null);
-        view.setOnClickListener(listener);
+        clickListenerMap.put(view, listener);
         view.setText(title_id);
 
         getListView().addFooterView(view, null, true);
@@ -630,8 +650,7 @@ public class ConfigSendToDetailActivity extends ListActivity
         }
     }
 
-    private class AddressItemOnClickListener
-        implements View.OnClickListener, View.OnLongClickListener
+    private class AddressItemOnClickListener implements View.OnClickListener
     {
         private int position;
 
@@ -644,14 +663,6 @@ public class ConfigSendToDetailActivity extends ListActivity
         {
             // start edit
             showEditAddress(position);
-        }
-
-        public boolean onLongClick(View v)
-        {
-            // show context menu
-            v.showContextMenu();
-
-            return true;
         }
     }
 
@@ -684,8 +695,7 @@ public class ConfigSendToDetailActivity extends ListActivity
 
             AddressItemOnClickListener listener =
                 new AddressItemOnClickListener(position);
-            view.setOnClickListener(listener);
-            view.setOnLongClickListener(listener);
+            clickListenerMap.put(view, listener);
 
             ((TextView)view.findViewById(R.id.list_item_title)).
                 setText(detailinfo.getAddress(position));
