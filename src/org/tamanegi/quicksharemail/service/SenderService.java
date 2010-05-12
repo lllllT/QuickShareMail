@@ -54,6 +54,7 @@ public class SenderService extends Service
     private static final int NOTIFY_ID_REMAIN = 0;
     private static final int NOTIFY_ID_RETRY = 1;
 
+    private static final int REQUEST_TYPE_START = 0;
     private static final int REQUEST_TYPE_STOP = 1;
     private static final int REQUEST_TYPE_ENQUEUE = 2;
     private static final int REQUEST_TYPE_RETRY = 3;
@@ -99,6 +100,8 @@ public class SenderService extends Service
                                   "QuickShareMail");
 
         main_thread.start();
+
+        req_cnt = pushRequest(REQUEST_TYPE_START);
     }
 
     @Override
@@ -124,8 +127,9 @@ public class SenderService extends Service
     {
         req_cnt += processRequest(intent);
 
-        if(req_cnt == 0) {
+        if(req_cnt <= 0) {
             stopSelfResult(startId);
+            req_cnt = 0;
         }
     }
 
