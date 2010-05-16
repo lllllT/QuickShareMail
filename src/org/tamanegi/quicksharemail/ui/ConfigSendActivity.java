@@ -2,9 +2,11 @@ package org.tamanegi.quicksharemail.ui;
 
 import org.tamanegi.quicksharemail.R;
 import org.tamanegi.quicksharemail.content.SendSetting;
+import org.tamanegi.quicksharemail.service.SenderService;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
 import android.preference.CheckBoxPreference;
 import android.preference.EditTextPreference;
@@ -39,9 +41,12 @@ public class ConfigSendActivity extends PreferenceActivity
                            SendSetting.DEFAULT_SMTP_PORT,
                            MAX_TCP_PORT_NUMBER,
                            R.string.msg_pref_smtp_port);
-        setupListSummary("smtp_sec", SendSetting.DEFAULT_SMTP_SEC);
+        setupSecListSummary("smtp_sec", SendSetting.DEFAULT_SMTP_SEC);
 
         setupTextSummary("smtp_user", R.string.summary_def_pref_smtp_user);
+
+        findPreference("show_progress").setOnPreferenceChangeListener(
+            new UpdateNotificationOnChangeCheck());
     }
 
     private void setupTextSummary(String key, int def_id)
@@ -102,12 +107,12 @@ public class ConfigSendActivity extends PreferenceActivity
         preference.setSummary(String.valueOf(val));
     }
 
-    private void setupListSummary(String key, String def_val)
+    private void setupSecListSummary(String key, String def_val)
     {
         ListPreference preference = (ListPreference)findPreference(key);
 
         preference.setOnPreferenceChangeListener(
-            new UpdateSummaryOnChangeList());
+            new UpdateSummaryOnChangeSecList());
 
         int idx = preference.findIndexOfValue(preference.getValue());
         if(idx < 0) {
@@ -139,7 +144,7 @@ public class ConfigSendActivity extends PreferenceActivity
                 new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog,
                                         int whichButton) {
-                        dialog.cancel();
+                        dialog.dismiss();
                     }
                 })
             .show();
@@ -170,6 +175,35 @@ public class ConfigSendActivity extends PreferenceActivity
             (EditTextPreference)findPreference("smtp_user");
         smtp_user.setText(addr);
         smtp_user.setSummary(addr);
+    }
+
+    private void showPortSelect(int msg_id, long port)
+    {
+        final String port_str = String.valueOf(port);
+        new AlertDialog.Builder(this)
+            .setTitle(R.string.title_pref_smtp_ask_sec_port)
+            .setMessage(msg_id)
+            .setPositiveButton(
+                android.R.string.yes,
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog,
+                                        int whichButton) {
+                        dialog.dismiss();
+                        EditTextPreference smtp_port =
+                            (EditTextPreference)findPreference("smtp_port");
+                        smtp_port.setText(port_str);
+                        smtp_port.setSummary(port_str);
+                    }
+                })
+            .setNegativeButton(
+                android.R.string.no,
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog,
+                                        int whichButton) {
+                        dialog.dismiss();
+                    }
+                })
+            .show();
     }
 
     private void showWarnMessage(int str_id)
@@ -271,6 +305,49 @@ public class ConfigSendActivity extends PreferenceActivity
             ListPreference pref = (ListPreference)preference;
             int idx = pref.findIndexOfValue(newValue.toString());
             pref.setSummary(pref.getEntries()[idx]);
+            return true;
+        }
+    }
+
+    private class UpdateSummaryOnChangeSecList
+        extends UpdateSummaryOnChangeList
+    {
+        public boolean onPreferenceChange(Preference preference,
+                                          Object newValue)
+        {
+            super.onPreferenceChange(preference, newValue);
+
+            String cur_port =
+                ((EditTextPreference)findPreference("smtp_port")).getText();
+            if("ssl".equals(newValue)) {
+                if(! String.valueOf(
+                       SendSetting.DEFAULT_SMTP_SSL_PORT).equals(cur_port)) {
+                    showPortSelect(R.string.msg_pref_smtp_ask_sec_ssl,
+                                   SendSetting.DEFAULT_SMTP_SSL_PORT);
+                }
+            }
+            else {
+                if(! String.valueOf(
+                       SendSetting.DEFAULT_SMTP_PORT).equals(cur_port)) {
+                    showPortSelect(R.string.msg_pref_smtp_ask_sec_submission,
+                                   SendSetting.DEFAULT_SMTP_PORT);
+                }
+            }
+
+            return true;
+        }
+    }
+
+    private class UpdateNotificationOnChangeCheck
+        implements Preference.OnPreferenceChangeListener
+    {
+        public boolean onPreferenceChange(Preference preference,
+                                          Object newValue)
+        {
+            startService(
+                    new Intent(SenderService.ACTION_ENQUEUE, null,
+                               getApplicationContext(),
+                               SenderService.class));
             return true;
         }
     }

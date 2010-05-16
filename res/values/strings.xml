@@ -2,11 +2,10 @@
 <resources>
   <string name="app_name">QuickShareMail</string>
 
-  <string name="notify_sending">Now sending email</string>
-  <string name="notify_remain">%d Email(s) are remaining to send.</string>
+  <string name="notify_remain">%1$d Email(s) are remaining, %2$d Emals(s) are waiting to resend.</string>
+  <string name="notify_remain_rest">%d Email(s) are remaining to send.</string>
+  <string name="notify_remain_retry">%d Email(s) are waiting to resend.</string>
   <string name="notify_invalid_addr">There is invalid recipient address.</string>
-  <string name="notify_not_processed">There is not processed email.</string>
-  <string name="notify_retry">%d Email(s) are waiting for resend.</string>
 
   <string name="msg_fail_send">Failed to send email.\n%s</string>
   <string name="msg_fail_send_security">Permission denined.</string>
@@ -44,6 +43,9 @@
   <string name="title_pref_smtp_ask_gmail">Using Gmail</string>
   <string name="msg_pref_smtp_ask_gmail">Change SMTP server setting for Gmail?</string>
   <string name="msg_pref_smtp_port">Invalid port number.</string>
+  <string name="title_pref_smtp_ask_sec_port">Change port</string>
+  <string name="msg_pref_smtp_ask_sec_ssl">Change port for SMTP over SSL (465)?</string>
+  <string name="msg_pref_smtp_ask_sec_submission">Change port for SMTP submission (587)?</string>
 
   <string name="title_pref_send_to">Recipient setting</string>
   <string name="title_pref_send_to_list">Recipient</string>

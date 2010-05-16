@@ -7,6 +7,7 @@ import android.preference.PreferenceManager;
 public class SendSetting
 {
     public static final long DEFAULT_SMTP_PORT = 587;
+    public static final long DEFAULT_SMTP_SSL_PORT = 465;
     public static final String DEFAULT_SMTP_SEC = "none";
     public static final boolean DEFAULT_SENDTO_ALWAYS_SHOW = false;
 

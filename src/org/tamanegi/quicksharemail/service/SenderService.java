@@ -13,7 +13,6 @@ import org.tamanegi.quicksharemail.content.SendSetting;
 import org.tamanegi.quicksharemail.mail.MailComposer;
 import org.tamanegi.quicksharemail.mail.UriDataSource;
 import org.tamanegi.quicksharemail.ui.ConfigSendActivity;
-import org.tamanegi.quicksharemail.ui.RetrySendActivity;
 import org.tamanegi.util.StringCustomFormatter;
 
 import android.app.Notification;
@@ -51,8 +50,7 @@ public class SenderService extends Service
     public static final String EXTRA_MSG_STRING = "notifyMsg";
     public static final String EXTRA_MSG_DURATION = "notifyDuration";
 
-    private static final int NOTIFY_ID_REMAIN = 0;
-    private static final int NOTIFY_ID_RETRY = 1;
+    private static final int NOTIFY_ID = 0;
 
     private static final int REQUEST_TYPE_START = 0;
     private static final int REQUEST_TYPE_STOP = 1;
@@ -63,6 +61,7 @@ public class SenderService extends Service
     private static final int SNIP_LENGTH = 40;
 
     private int req_cnt = 0;
+    private int notif_cnt = 0;
 
     private volatile boolean is_running = false;
     private Thread main_thread = null;
@@ -349,11 +348,13 @@ public class SenderService extends Service
         }
         catch(MessagingException e) {
             e.printStackTrace();
+            // todo: err msg
             showWarnToast(getString(R.string.msg_fail_send, e.getMessage()));
             return;
         }
         catch(SecurityException e) {
             e.printStackTrace();
+            // todo: err msg
             showWarnToast(
                 getString(R.string.msg_fail_send,
                           getString(R.string.msg_fail_send_security)));
@@ -361,6 +362,7 @@ public class SenderService extends Service
         }
         catch(Exception e) {
             e.printStackTrace();
+            // todo: err msg
             showWarnToast(getString(R.string.msg_fail_send, e.getMessage()));
             return;
         }
@@ -425,51 +427,51 @@ public class SenderService extends Service
         // remaining count
         if(setting.isShowProgressNotification()) {
             int rest_cnt = message_db.getRestCount();
-            if(rest_cnt > 0) {
-                showNotification(NOTIFY_ID_REMAIN,
-                                 R.drawable.status,
+            int retry_cnt = message_db.getRetryCount();
+
+            if(rest_cnt + retry_cnt > 0) {
+                String msg;
+                int icon_level;
+
+                if(rest_cnt != 0) {
+                    icon_level = (notif_cnt++) % 2 + 2;
+                    msg = (retry_cnt != 0 ?
+                           getString(
+                               R.string.notify_remain, rest_cnt, retry_cnt) :
+                           getString(
+                               R.string.notify_remain_rest, rest_cnt));
+                }
+                else {
+                    icon_level = 1;
+                    msg = getString(R.string.notify_remain_retry, retry_cnt);
+                }
+
+                showNotification(R.drawable.status, icon_level,
                                  null,
-                                 getString(R.string.notify_sending),
-                                 getString(R.string.notify_remain, rest_cnt),
+                                 getString(R.string.app_name),
+                                 msg,
                                  ConfigSendActivity.class,
-                                 Notification.FLAG_ONGOING_EVENT,
-                                 rest_cnt);
+                                 Notification.FLAG_ONGOING_EVENT);
             }
             else {
-                cancelNotification(NOTIFY_ID_REMAIN);
+                cancelNotification();
             }
         }
         else {
-            cancelNotification(NOTIFY_ID_REMAIN);
-        }
-
-        // retry-later count
-        int retry_cnt = message_db.getRetryCount();
-        if(retry_cnt > 0) {
-            String text = getString(R.string.notify_retry, retry_cnt);
-            showNotification(NOTIFY_ID_RETRY,
-                             R.drawable.status,
-                             text,
-                             getString(R.string.notify_not_processed),
-                             text,
-                             RetrySendActivity.class,
-                             Notification.FLAG_AUTO_CANCEL,
-                             retry_cnt);
-        }
-        else {
-            cancelNotification(NOTIFY_ID_RETRY);
+            cancelNotification();
         }
     }
 
-    private void showNotification(int id, int icon,
+    private void showNotification(int icon, int icon_level,
                                   CharSequence ticker_text,
                                   CharSequence content_title,
                                   CharSequence content_text,
                                   Class<?> activity_class,
-                                  int flags, int number)
+                                  int flags)
     {
         long when = System.currentTimeMillis();
         Notification notify = new Notification(icon, ticker_text, when);
+        notify.iconLevel = icon_level;
 
         Intent intent = new Intent(getApplicationContext(), activity_class);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -480,18 +482,17 @@ public class SenderService extends Service
                                   content_text,
                                   content_intent);
         notify.flags = flags;
-        notify.number = number;
 
         NotificationManager nm = (NotificationManager)
             getSystemService(Context.NOTIFICATION_SERVICE);
-        nm.notify(id, notify);
+        nm.notify(NOTIFY_ID, notify);
     }
 
-    private void cancelNotification(int id)
+    private void cancelNotification()
     {
         NotificationManager nm = (NotificationManager)
             getSystemService(Context.NOTIFICATION_SERVICE);
-        nm.cancel(id);
+        nm.cancel(NOTIFY_ID);
     }
 
     private void showWarnToast(String msg)
