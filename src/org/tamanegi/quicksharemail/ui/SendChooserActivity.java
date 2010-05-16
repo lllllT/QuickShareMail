@@ -18,6 +18,8 @@ import android.net.Uri;
 
 public class SendChooserActivity extends Activity
 {
+    private boolean is_first = true;
+
     @Override
     protected void onResume()
     {
@@ -63,7 +65,7 @@ public class SendChooserActivity extends Activity
         }
 
         // select send-to address, if multiple send-to or always show flag
-        if(sendto.length > 1 || setting.isSendToAlwaysShow()) {
+        if(sendto.length > 1 || setting.isSendToAlwaysShow() || (! is_first)) {
             // show send-to selector
             selectAndStartAndFirish(sendto);
             return;
@@ -71,6 +73,13 @@ public class SendChooserActivity extends Activity
 
         // save send data, start service and finish
         startAndFinish(sendto[0]);
+    }
+
+    @Override
+    protected void onPause()
+    {
+        super.onPause();
+        is_first = false;
     }
 
     private void askAndStartConfig(int msg_id)
@@ -108,11 +117,12 @@ public class SendChooserActivity extends Activity
 
     private void selectAndStartAndFirish(final SendToContent[] sendto)
     {
-        CharSequence[] items = new CharSequence[sendto.length];
+        CharSequence[] items = new CharSequence[sendto.length + 1];
 
         for(int i = 0; i < sendto.length; i++) {
             items[i] = sendto[i].getLabel();
         }
+        items[sendto.length] = getString(R.string.msg_config_send_to);
 
         new AlertDialog.Builder(this)
             .setTitle(R.string.title_select_sendto)
@@ -120,17 +130,14 @@ public class SendChooserActivity extends Activity
                 items,
                 new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
-                        startAndFinish(sendto[which]);
-                    }
-                })
-            .setNeutralButton(
-                R.string.msg_config_send_to,
-                new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog,
-                                        int whichButton) {
-                        dialog.dismiss();
-                        startActivity(new Intent(getApplicationContext(),
-                                                 ConfigSendActivity.class));
+                        if(which < sendto.length) {
+                            startAndFinish(sendto[which]);
+                        }
+                        else {
+                            dialog.dismiss();
+                            startActivity(new Intent(getApplicationContext(),
+                                                     ConfigSendActivity.class));
+                        }
                     }
                 })
             .setNegativeButton(android.R.string.no, 
