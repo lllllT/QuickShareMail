@@ -385,6 +385,8 @@ public class SenderService extends Service
                     'T', String.format("%tT", date)),
                 new StringCustomFormatter.IdValue(
                     'F', String.format("%tF", date)),
+                new StringCustomFormatter.IdValue(
+                    'D', String.format("%tF", date)),
             });
     }
 

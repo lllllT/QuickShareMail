@@ -1,16 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-  <style name="listItemAdd">
-	<item name="android:layout_width">fill_parent</item>
-	<item name="android:layout_height">fill_parent</item>
-	<item name="android:gravity">center</item>
-	<item name="android:paddingTop">10dip</item>
-	<item name="android:paddingBottom">10dip</item>
-	<item name="android:textAppearance">?android:attr/textAppearanceLarge</item>
-	<item name="android:background">@android:drawable/menuitem_background</item>
-  </style>
-
   <style name="listItem">
 	<item name="android:layout_width">fill_parent</item>
 	<item name="android:layout_height">wrap_content</item>
@@ -18,6 +8,12 @@
 	<item name="android:gravity">center_vertical</item>
 	<item name="android:paddingRight">?android:attr/scrollbarSize</item>
 	<item name="android:background">@android:drawable/menuitem_background</item>
+  </style>
+
+  <style name="listItemAdd">
+	<item name="android:layout_width">wrap_content</item>
+	<item name="android:layout_height">wrap_content</item>
+	<item name="android:textAppearance">?android:attr/textAppearanceLarge</item>
   </style>
 
   <style name="listItemTexts">
@@ -56,12 +52,14 @@
 	<item name="android:layout_width">wrap_content</item>
 	<item name="android:layout_height">wrap_content</item>
 	<item name="android:padding">5dip</item>
-	<item name="android:orientation">vertical</item>
+	<item name="android:orientation">horizontal</item>
+	<item name="android:gravity">center_vertical</item>
   </style>
 
   <style name="dialogEditTextContent">
-	<item name="android:layout_width">fill_parent</item>
+	<item name="android:layout_width">wrap_content</item>
 	<item name="android:layout_height">wrap_content</item>
+	<item name="android:layout_weight">1</item>
 	<item name="android:textAppearance">?android:attr/textAppearanceMedium</item>
 	<item name="android:singleLine">true</item>
   </style>
@@ -83,6 +81,13 @@
 	<item name="android:maxLines">4</item>
 	<item name="android:scrollbars">vertical</item>
 	<item name="android:gravity">top</item>
+  </style>
+
+  <style name="dialogEditTextFormatButton">
+	<item name="android:layout_width">wrap_content</item>
+	<item name="android:layout_height">wrap_content</item>
+	<item name="android:layout_marginLeft">5dip</item>
+	<item name="android:text">@string/text_format_select</item>
   </style>
 
 </resources>

@@ -3,7 +3,7 @@
 			  style="@style/dialogEditText"
 			  android:orientation="horizontal">
   <EditText android:id="@+id/dialog_edittext"
-			style="@style/dialogEditMultiContent" />
+			style="@style/dialogEditTextContent" />
   <Button android:id="@+id/dialog_editformat_button"
 		  style="@style/dialogEditTextFormatButton" />
 </LinearLayout>

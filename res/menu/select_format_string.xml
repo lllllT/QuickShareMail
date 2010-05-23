@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+  <item android:title="@string/menu_format_select_seqid"
+		android:id="@+id/menu_format_select_seqid" />
+  <item android:title="@string/menu_format_select_snipbody"
+		android:id="@+id/menu_format_select_snipbody" />
+  <item android:title="@string/menu_format_select_filename"
+		android:id="@+id/menu_format_select_filename" />
+  <item android:title="@string/menu_format_select_title"
+		android:id="@+id/menu_format_select_title" />
+  <item android:title="@string/menu_format_select_time"
+		android:id="@+id/menu_format_select_time" />
+  <item android:title="@string/menu_format_select_date"
+		android:id="@+id/menu_format_select_date" />
+</menu>

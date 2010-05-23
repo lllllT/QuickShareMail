@@ -102,6 +102,15 @@
   <string name="menu_send_to_address_delete">Delete address</string>
   <string name="menu_send_to_address_add">Add address</string>
 
+  <string name="text_format_select">...</string>
+  <string name="title_format_select">Select format string</string>
+  <string name="menu_format_select_seqid">%i - Sequential number</string>
+  <string name="menu_format_select_snipbody">%s - First 40 characters of message body</string>
+  <string name="menu_format_select_filename">%f - File name</string>
+  <string name="menu_format_select_title">%t - \"%s\" or \"%f\"</string>
+  <string name="menu_format_select_time">%T - Time \"hh:mm:ss\"</string>
+  <string name="menu_format_select_date">%D - Date \"YYYY/MM/DD\"</string>
+
   <string name="initial_label_text">Text</string>
   <string name="initial_label_image">Image</string>
   <string name="initial_label_movie">Video</string>

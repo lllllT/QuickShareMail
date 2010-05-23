@@ -192,11 +192,12 @@ public class ConfigSendToActivity extends ListActivity
     }
 
     private void addTextItemFooter(int title_id,
-                                     View.OnClickListener listener)
+                                   View.OnClickListener listener)
     {
-        TextView view = (TextView)inflater.inflate(R.layout.list_additem, null);
+        View view = inflater.inflate(R.layout.list_additem, null);
         clickListenerMap.put(view, listener);
-        view.setText(title_id);
+
+        ((TextView)view.findViewById(R.id.list_item_title)).setText(title_id);
 
         getListView().addFooterView(view, null, true);
     }

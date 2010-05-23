@@ -1,3 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<TextView xmlns:android="http://schemas.android.com/apk/res/android"
-		  style="@style/listItemAdd" />
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+			  style="@style/listItem"
+			  android:orientation="horizontal"
+			  android:gravity="center">
+  <TextView android:id="@+id/list_item_title"
+			style="@style/listItemAdd" />
+</LinearLayout>

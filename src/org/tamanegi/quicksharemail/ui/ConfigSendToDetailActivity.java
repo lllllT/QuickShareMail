@@ -12,6 +12,7 @@ import org.tamanegi.quicksharemail.content.SendToDB;
 
 import android.app.AlertDialog;
 import android.app.ListActivity;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.view.ContextMenu;
@@ -20,9 +21,12 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
 import android.widget.AdapterView;
 import android.widget.BaseAdapter;
+import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -265,11 +269,12 @@ public class ConfigSendToDetailActivity extends ListActivity
     }
 
     private void addTextItemFooter(int title_id,
-                                     View.OnClickListener listener)
+                                   View.OnClickListener listener)
     {
-        TextView view = (TextView)inflater.inflate(R.layout.list_additem, null);
+        View view = inflater.inflate(R.layout.list_additem, null);
         clickListenerMap.put(view, listener);
-        view.setText(title_id);
+
+        ((TextView)view.findViewById(R.id.list_item_title)).setText(title_id);
 
         getListView().addFooterView(view, null, true);
     }
@@ -303,50 +308,8 @@ public class ConfigSendToDetailActivity extends ListActivity
                               final OnTextEditedListener on_ok,
                               final OnTextEditedListener on_cancel)
     {
-        View view = inflater.inflate(view_id, null);
-        final TextView text_view =
-            (TextView)view.findViewById(R.id.dialog_edittext);
-
-        if(init_text != null) {
-            text_view.setText(init_text);
-        }
-
-        AlertDialog dialog = new AlertDialog.Builder(this)
-            .setTitle(title_id)
-            .setView(view)
-            .setPositiveButton(
-                android.R.string.ok,
-                new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog,
-                                        int whichButton) {
-                        dialog.dismiss();
-                        if(on_ok != null) {
-                            on_ok.onTextEdited(text_view.getText());
-                        }
-                    }
-                })
-            .setNegativeButton(
-                android.R.string.cancel,
-                new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog,
-                                        int whichButton) {
-                        dialog.dismiss();
-                        if(on_cancel != null) {
-                            on_cancel.onTextEdited(text_view.getText());
-                        }
-                    }
-                })
-            .setOnCancelListener(
-                new DialogInterface.OnCancelListener() {
-                    public void onCancel(DialogInterface dialog) {
-                        dialog.dismiss();
-                        if(on_cancel != null) {
-                            on_cancel.onTextEdited(text_view.getText());
-                        }
-                    }
-                })
-            .create();
-
+        EditTextDialog dialog = new EditTextDialog(
+            this, init_text, title_id, view_id, on_ok, on_cancel);
         dialog.show();
     }
 
@@ -564,10 +527,9 @@ public class ConfigSendToDetailActivity extends ListActivity
     {
         public void onClick(View v)
         {
-            // todo: show format template?
             showEditText(detailinfo.getSubjectFormat(),
                          R.string.title_pref_send_to_detail_subject,
-                         R.layout.dialog_edittext,
+                         R.layout.dialog_editsubject,
                          this, null);
         }
 
@@ -584,7 +546,6 @@ public class ConfigSendToDetailActivity extends ListActivity
     {
         public void onClick(View v)
         {
-            // todo: show format template?
             showEditText(detailinfo.getBodyFormat(),
                          R.string.title_pref_send_to_detail_body,
                          R.layout.dialog_editmulti,
@@ -708,5 +669,150 @@ public class ConfigSendToDetailActivity extends ListActivity
     private interface OnTextEditedListener
     {
         public void onTextEdited(CharSequence text);
+    }
+
+    private class EditTextDialog extends AlertDialog
+    {
+        private EditText text_view;
+        private Button format_button;
+        private OnTextEditedListener on_ok;
+        private OnTextEditedListener on_cancel;
+
+        private EditTextDialog(Context context,
+                               CharSequence init_text,
+                               int title_id,
+                               int view_id,
+                               final OnTextEditedListener on_ok,
+                               final OnTextEditedListener on_cancel)
+        {
+            super(context);
+            this.on_ok = on_ok;
+            this.on_cancel = on_cancel;
+            build(init_text, title_id, view_id);
+        }
+
+        private void build(CharSequence init_text, int title_id, int view_id)
+        {
+            View view = inflater.inflate(view_id, null);
+            text_view =
+                (EditText)view.findViewById(R.id.dialog_edittext);
+            format_button =
+                (Button)view.findViewById(R.id.dialog_editformat_button);
+
+            if(init_text != null) {
+                text_view.setText(init_text);
+            }
+
+            setTitle(title_id);
+            setView(view);
+            setButton(
+                AlertDialog.BUTTON_POSITIVE,
+                getString(android.R.string.ok),
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog,
+                                        int whichButton) {
+                        dialog.dismiss();
+                        if(on_ok != null) {
+                            on_ok.onTextEdited(text_view.getText());
+                        }
+                    }
+                });
+            setButton(
+                AlertDialog.BUTTON_NEGATIVE,
+                getString(android.R.string.cancel),
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog,
+                                        int whichButton) {
+                        dialog.dismiss();
+                        if(on_cancel != null) {
+                            on_cancel.onTextEdited(text_view.getText());
+                        }
+                    }
+                });
+            setOnCancelListener(
+                new DialogInterface.OnCancelListener() {
+                    public void onCancel(DialogInterface dialog) {
+                        dialog.dismiss();
+                        if(on_cancel != null) {
+                            on_cancel.onTextEdited(text_view.getText());
+                        }
+                    }
+                });
+            setOnDismissListener(new DialogInterface.OnDismissListener() {
+                    public void onDismiss(DialogInterface dialog) {
+                        if(format_button != null) {
+                            unregisterForContextMenu(format_button);
+                        }
+                    }
+                });
+
+            if(format_button != null) {
+                registerForContextMenu(format_button);
+                format_button.setOnClickListener(new View.OnClickListener() {
+                        public void onClick(View v) {
+                            openContextMenu(v);
+                        }
+                    });
+            }
+        }
+
+        private void insertEditTextString(String str)
+        {
+            text_view.getEditableText().replace(
+                text_view.getSelectionStart(),
+                text_view.getSelectionEnd(),
+                str);
+            text_view.setSelection(text_view.getSelectionEnd());
+        }
+
+        @Override
+        public void onCreateContextMenu(ContextMenu menu, View v,
+                                        ContextMenu.ContextMenuInfo menuinfo)
+        {
+            getMenuInflater().inflate(R.menu.select_format_string, menu);
+            menu.setHeaderTitle(R.string.title_format_select);
+        }
+
+        @Override
+        public boolean onContextItemSelected(MenuItem item)
+        {
+            switch(item.getItemId()) {
+            case R.id.menu_format_select_seqid:
+                insertEditTextString("%i");
+                return true;
+
+            case R.id.menu_format_select_snipbody:
+                insertEditTextString("%s");
+                return true;
+
+            case R.id.menu_format_select_filename:
+                insertEditTextString("%f");
+                return true;
+
+            case R.id.menu_format_select_title:
+                insertEditTextString("%t");
+                return true;
+
+            case R.id.menu_format_select_time:
+                insertEditTextString("%T");
+                return true;
+
+            case R.id.menu_format_select_date:
+                insertEditTextString("%D");
+                return true;
+            }
+            return super.onContextItemSelected(item);
+        }
+
+        @Override
+        public boolean onMenuItemSelected(int featureId, MenuItem item)
+        {
+            if(featureId == Window.FEATURE_CONTEXT_MENU) {
+                return onContextItemSelected(item);
+            }
+            else {
+                return super.onMenuItemSelected(featureId, item);
+            }
+        }
     }
 }
