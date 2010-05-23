@@ -12,18 +12,24 @@ import org.tamanegi.quicksharemail.content.MessageDB;
 import org.tamanegi.quicksharemail.content.SendSetting;
 import org.tamanegi.quicksharemail.mail.MailComposer;
 import org.tamanegi.quicksharemail.mail.UriDataSource;
+import org.tamanegi.quicksharemail.receiver.NetworkStateChangeReceiver;
+import org.tamanegi.quicksharemail.receiver.RetryAlarmReceiver;
 import org.tamanegi.quicksharemail.ui.ConfigSendActivity;
 import org.tamanegi.util.StringCustomFormatter;
 
+import android.app.AlarmManager;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.IBinder;
 import android.os.PowerManager;
+import android.os.SystemClock;
 import android.widget.Toast;
 
 public class SenderService extends Service
@@ -83,6 +89,15 @@ public class SenderService extends Service
     {
         super.onCreate();
 
+        // prepare data
+        setting = new SendSetting(this);
+        message_db = new MessageDB(this);
+
+        PowerManager pm = (PowerManager)getSystemService(Context.POWER_SERVICE);
+        wakelock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,
+                                  "QuickShareMail");
+
+        // prepare thread
         is_running = true;
         main_thread = new Thread(new Runnable() {
                 public void run() {
@@ -91,15 +106,9 @@ public class SenderService extends Service
             });
         queue = new LinkedBlockingQueue<Object>();
 
-        setting = new SendSetting(this);
-        message_db = new MessageDB(this);
-
-        PowerManager pm = (PowerManager)getSystemService(Context.POWER_SERVICE);
-        wakelock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,
-                                  "QuickShareMail");
-
         main_thread.start();
 
+        // for service restart time
         req_cnt = pushRequest(REQUEST_TYPE_START);
     }
 
@@ -127,6 +136,36 @@ public class SenderService extends Service
         req_cnt += processRequest(intent);
 
         if(req_cnt <= 0) {
+            boolean need_retry = (message_db.getRetryCount() > 0);
+
+            // prepare network state receiver
+            getPackageManager().setComponentEnabledSetting(
+                new ComponentName(getApplicationContext(),
+                                  NetworkStateChangeReceiver.class),
+                (need_retry ?
+                 PackageManager.COMPONENT_ENABLED_STATE_ENABLED :
+                 PackageManager.COMPONENT_ENABLED_STATE_DISABLED),
+                PackageManager.DONT_KILL_APP);
+
+            // prepare retry alarm
+            Intent alerm_intent = new Intent(
+                getApplicationContext(), RetryAlarmReceiver.class);
+            PendingIntent alerm_pending_intent =
+                PendingIntent.getBroadcast(this, 0, alerm_intent, 0);
+            AlarmManager mgr =
+                (AlarmManager)getSystemService(Context.ALARM_SERVICE);
+            if(need_retry) {
+                mgr.setInexactRepeating(
+                    AlarmManager.ELAPSED_REALTIME_WAKEUP,
+                    SystemClock.elapsedRealtime() + (30 * 60 * 1000),
+                    AlarmManager.INTERVAL_HALF_HOUR,
+                    alerm_pending_intent);
+            }
+            else {
+                mgr.cancel(alerm_pending_intent);
+            }
+
+            // stop service
             stopSelfResult(startId);
             req_cnt = 0;
         }

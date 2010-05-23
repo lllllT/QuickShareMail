@@ -40,6 +40,14 @@
 
 	<service android:name=".service.SenderService" />
 
+	<receiver android:name=".receiver.NetworkStateChangeReceiver"
+			  android:enabled="false">
+	  <intent-filter>
+		<action android:name="android.net.conn.CONNECTIVITY_CHANGE" />
+	  </intent-filter>
+	</receiver>
+	<receiver android:name=".receiver.RetryAlarmReceiver" />
+
   </application>
 
 </manifest> 
