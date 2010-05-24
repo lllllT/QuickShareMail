@@ -11,7 +11,6 @@ public class RetryAlarmReceiver extends BroadcastReceiver
     @Override
     public void onReceive(Context context, Intent intent)
     {
-        System.out.println("dbg: RetryAlarmReceiver#onReceive: " + intent);
         context.startService(
             new Intent(SenderService.ACTION_RETRY, null,
                        context, SenderService.class));
