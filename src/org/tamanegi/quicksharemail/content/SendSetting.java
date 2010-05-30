@@ -22,7 +22,10 @@ public class SendSetting
     private static final String KEY_SMTP_PASS = "smtp_pass";
     private static final String KEY_SENDTO_CONFIGURED = "sendto_configured";
     private static final String KEY_SENDTO_ALWAYS_SHOW = "sendto_always_show";
+
     private static final String KEY_SHOW_PROGRESS = "show_progress";
+    private static final String KEY_EXPAND_URL = "expand_url";
+    private static final String KEY_EXPAND_TITLE = "expand_title";
 
     public SendSetting(Context context)
     {
@@ -137,6 +140,30 @@ public class SendSetting
     {
         SharedPreferences.Editor edit = prefs.edit();
         edit.putBoolean(KEY_SHOW_PROGRESS, show);
+        edit.commit();
+    }
+
+    public boolean isExpandUrl()
+    {
+        return prefs.getBoolean(KEY_EXPAND_URL, false);
+    }
+
+    public void setExpandUrl(boolean expand_url)
+    {
+        SharedPreferences.Editor edit = prefs.edit();
+        edit.putBoolean(KEY_EXPAND_URL, expand_url);
+        edit.commit();
+    }
+
+    public boolean isRetrieveTitle()
+    {
+        return prefs.getBoolean(KEY_EXPAND_TITLE, false);
+    }
+
+    public void setRetrieveTitle(boolean expand_title)
+    {
+        SharedPreferences.Editor edit = prefs.edit();
+        edit.putBoolean(KEY_EXPAND_TITLE, expand_title);
         edit.commit();
     }
 }

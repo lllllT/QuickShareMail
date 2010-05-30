@@ -1,11 +1,23 @@
 package org.tamanegi.quicksharemail.service;
 
+import java.io.IOException;
+import java.net.URI;
 import java.util.Date;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.mail.MessagingException;
 import javax.mail.util.ByteArrayDataSource;
 
+import org.apache.http.HttpResponse;
+import org.apache.http.ProtocolException;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.RedirectHandler;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.client.DefaultRedirectHandler;
+import org.apache.http.protocol.HttpContext;
 import org.tamanegi.quicksharemail.R;
 import org.tamanegi.quicksharemail.content.MessageContent;
 import org.tamanegi.quicksharemail.content.MessageDB;
@@ -65,6 +77,10 @@ public class SenderService extends Service
     private static final int REQUEST_TYPE_DELETE_ALL = 4;
 
     private static final int SNIP_LENGTH = 40;
+
+    private static final Pattern URL_PATTERN =
+        Pattern.compile("https?://[\\p{Alnum}-_.!~*'();\\/?:@=+$,%&#]*");
+    private static final String EXTRACT_SEP = "\n-> ";
 
     private int req_cnt = 0;
     private int notif_cnt = 0;
@@ -324,6 +340,7 @@ public class SenderService extends Service
             String snip_body = snipBody(body);
             String stream = msg.getStream();
             UriDataSource attach_src = null;
+            ByteArrayDataSource link_info_src = null;
 
             // for attachment
             if(stream != null) {
@@ -345,6 +362,16 @@ public class SenderService extends Service
                 body = (attach_src != null ?
                         formatter.format(msg.getBodyFormat()) : "");
                 type = "text/plain";
+            }
+            else {
+                // link info
+                String link_info = retrieveLinkInfo(body);
+                if(link_info != null &&
+                   link_info.length() > 0 &&
+                   (! link_info.equals(body))) {
+                    link_info_src =
+                        new ByteArrayDataSource(link_info, "text/plain");
+                }
             }
 
             // smtp settings
@@ -377,8 +404,11 @@ public class SenderService extends Service
                                             msg.getDate());
 
             mail.setBody(new ByteArrayDataSource(body, type));
+            if(link_info_src != null) {
+                mail.appendPart(link_info_src);
+            }
             if(attach_src != null) {
-                mail.addAttachFile(attach_src);
+                mail.appendPart(attach_src);
             }
 
             // send mail
@@ -463,6 +493,69 @@ public class SenderService extends Service
                 nospbody : nospbody.substring(0, SNIP_LENGTH - 3) + "...");
     }
 
+    private String retrieveLinkInfo(String text)
+    {
+        if(! setting.isExpandUrl()) {
+            return null;
+        }
+
+        final StringBuilder info = new StringBuilder();
+        Matcher matcher = URL_PATTERN.matcher(text);
+
+        InfoLogHttpClient http = new InfoLogHttpClient();
+
+        while(matcher.find()) {
+            StringBuilder link_info = new StringBuilder();
+
+            // extract link
+            String link = matcher.group();
+
+            // execute GET request
+            HttpResponse response;
+            try {
+                http.setInfoLog(link_info);
+                response = http.execute(new HttpGet(link));
+            }
+            catch(ClientProtocolException e) {
+                e.printStackTrace();
+                continue;
+            }
+            catch(IOException e) {
+                e.printStackTrace();
+                continue;
+            }
+
+            // retrieve HTML title
+            String title = getResponseTitle(response);
+            if(title != null) {
+                link_info.append(EXTRACT_SEP).append(title);
+            }
+
+            // check additional info exist?
+            if(link_info.length() == 0) {
+                continue;
+            }
+
+            // append info
+            if(info.length() != 0) {
+                info.append("\n\n");
+            }
+            info.append(link).append(link_info);
+        }
+
+        return info.toString();
+    }
+
+    private String getResponseTitle(HttpResponse response)
+    {
+        if(! setting.isRetrieveTitle()) {
+            return null;
+        }
+
+        // todo: retrieve title from response
+        return null;
+    }
+
     private void updateRemainNotification()
     {
         // remaining count
@@ -544,5 +637,30 @@ public class SenderService extends Service
         intent.putExtra(EXTRA_MSG_STRING, msg);
         intent.putExtra(EXTRA_MSG_DURATION, Toast.LENGTH_LONG);
         startService(intent);
+    }
+
+    private class InfoLogHttpClient extends DefaultHttpClient
+    {
+        private StringBuilder info;
+
+        @Override
+        public RedirectHandler createRedirectHandler()
+        {
+            return new DefaultRedirectHandler() {
+                public URI getLocationURI(
+                    HttpResponse response, HttpContext context)
+                    throws ProtocolException {
+                    URI uri = super.getLocationURI(response, context);
+                    info.append(EXTRACT_SEP).append(uri);
+                    System.out.println("dbg: redirect: " + uri);
+                    return uri;
+                }
+            };
+        }
+
+        private void setInfoLog(StringBuilder info)
+        {
+            this.info = info;
+        }
     }
 }

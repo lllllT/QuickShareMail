@@ -88,10 +88,15 @@
 
   <string name="title_pref_misc">その他の設定</string>
   <string name="title_pref_show_progress">送信中は通知バーに表示する</string>
+  <string name="title_pref_expand_url">短縮URLを展開する</string>
+  <string name="title_pref_expand_title">リンク先のタイトルを取得する</string>
+
   <string name="title_retry_send">メール再送信</string>
   <string name="title_ask_retry_send">再送信</string>
 
   <string name="summary_pref_show_progress">メール送信中は通知バーにアイコンを表示する</string>
+  <string name="summary_pref_expand_url">テキスト中の短縮URLを展開して情報追加する</string>
+  <string name="summary_pref_expand_title">テキスト中URLのページタイトルを取得して情報追加する</string>
 
   <string name="msg_no_retry">再送信が必要なメールはありません。</string>
   <string name="msg_ask_retry">%d件の再送信待ちメールがあります。\n再送信しますか？</string>

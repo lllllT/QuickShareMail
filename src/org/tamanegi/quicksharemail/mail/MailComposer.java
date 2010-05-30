@@ -86,7 +86,7 @@ public class MailComposer
             this.body = body_src;
         }
 
-        public void addAttachFile(DataSource attach_src)
+        public void appendPart(DataSource attach_src)
         {
             attach.add(attach_src);
         }
@@ -156,7 +156,9 @@ public class MailComposer
                 }
 
                 attach_part.setDataHandler(new DataHandler(attach));
-                attach_part.setFileName(encoded_name);
+                if(encoded_name.length() > 0) {
+                    attach_part.setFileName(encoded_name);
+                }
 
                 bodypart.addBodyPart(attach_part);
             }

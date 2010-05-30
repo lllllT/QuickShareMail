@@ -89,10 +89,15 @@
 
   <string name="title_pref_misc">Other settings</string>
   <string name="title_pref_show_progress">Show on notification bar when sending</string>
+  <string name="title_pref_expand_url">Expand short URL</string>
+  <string name="title_pref_expand_title">Retrieve title of linked page</string>
+
   <string name="title_retry_send">Resend email</string>
   <string name="title_ask_retry_send">Resend</string>
 
   <string name="summary_pref_show_progress">Show icon on notification bar when sending email</string>
+  <string name="summary_pref_expand_url">Expand short URL in text, and append expanded information</string>
+  <string name="summary_pref_expand_title">Retrieve title of URL in text, and append expanded information</string>
 
   <string name="msg_no_retry">No more emails need to resend.</string>
   <string name="msg_ask_retry">There are %d email(s) waiting for resend.\nResend email?</string>
