@@ -1,6 +1,7 @@
 package org.tamanegi.quicksharemail.service;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.util.Date;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -10,10 +11,12 @@ import java.util.regex.Pattern;
 import javax.mail.MessagingException;
 import javax.mail.util.ByteArrayDataSource;
 
+import org.apache.http.Header;
+import org.apache.http.HeaderElement;
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
 import org.apache.http.ProtocolException;
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.RedirectHandler;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.client.DefaultRedirectHandler;
@@ -366,9 +369,8 @@ public class SenderService extends Service
             else {
                 // link info
                 String link_info = retrieveLinkInfo(body);
-                if(link_info != null &&
-                   link_info.length() > 0 &&
-                   (! link_info.equals(body))) {
+                if(link_info != null && link_info.length() > 0) {
+                    body = body + "\n";
                     link_info_src =
                         new ByteArrayDataSource(link_info, "text/plain");
                 }
@@ -495,6 +497,7 @@ public class SenderService extends Service
 
     private String retrieveLinkInfo(String text)
     {
+        // check config
         if(! setting.isExpandUrl()) {
             return null;
         }
@@ -502,45 +505,69 @@ public class SenderService extends Service
         final StringBuilder info = new StringBuilder();
         Matcher matcher = URL_PATTERN.matcher(text);
 
-        InfoLogHttpClient http = new InfoLogHttpClient();
+        // retrieve link info
+        DefaultHttpClient http = new DefaultHttpClient();
+        try {
+            while(matcher.find()) {
+                final StringBuilder link_info = new StringBuilder();
+                http.setRedirectHandler(new DefaultRedirectHandler() {
+                        public URI getLocationURI(
+                            HttpResponse response, HttpContext context)
+                            throws ProtocolException {
+                            URI uri = super.getLocationURI(response, context);
+                            link_info.append(EXTRACT_SEP).append(uri);
+                            return uri;
+                        }
+                    });
 
-        while(matcher.find()) {
-            StringBuilder link_info = new StringBuilder();
+                // extract link
+                String link = matcher.group();
 
-            // extract link
-            String link = matcher.group();
+                // execute GET request
+                HttpResponse response = null;
+                try {
+                    try {
+                        System.out.println("dbg: link: " + link);
+                        response = http.execute(new HttpGet(link));
+                    }
+                    catch(IOException e) {
+                        // just ignore
+                        continue;
+                    }
 
-            // execute GET request
-            HttpResponse response;
-            try {
-                http.setInfoLog(link_info);
-                response = http.execute(new HttpGet(link));
-            }
-            catch(ClientProtocolException e) {
-                e.printStackTrace();
-                continue;
-            }
-            catch(IOException e) {
-                e.printStackTrace();
-                continue;
-            }
+                    // retrieve HTML title
+                    String title = getResponseTitle(response);
+                    if(title != null) {
+                        link_info.append(EXTRACT_SEP).append(title);
+                    }
 
-            // retrieve HTML title
-            String title = getResponseTitle(response);
-            if(title != null) {
-                link_info.append(EXTRACT_SEP).append(title);
-            }
+                    // check additional info exist?
+                    if(link_info.length() == 0) {
+                        continue;
+                    }
 
-            // check additional info exist?
-            if(link_info.length() == 0) {
-                continue;
+                    // append info
+                    info.append(info.length() != 0 ? "\n\n" : "\n")
+                        .append(link)
+                        .append(link_info);
+                }
+                finally {
+                    try {
+                        if(response != null) {
+                            HttpEntity entity = response.getEntity();
+                            if(entity != null) {
+                                entity.consumeContent();
+                            }
+                        }
+                    }
+                    catch(IOException e) {
+                        // just ignore
+                    }
+                }
             }
-
-            // append info
-            if(info.length() != 0) {
-                info.append("\n\n");
-            }
-            info.append(link).append(link_info);
+        }
+        finally {
+            http.getConnectionManager().shutdown();
         }
 
         return info.toString();
@@ -548,11 +575,54 @@ public class SenderService extends Service
 
     private String getResponseTitle(HttpResponse response)
     {
+        // check config
         if(! setting.isRetrieveTitle()) {
             return null;
         }
 
-        // todo: retrieve title from response
+        HttpEntity entity = response.getEntity();
+        if(entity == null) {
+            return null;
+        }
+
+        String charset = null;
+
+        // get charset from HTTP header
+        Header ctype = entity.getContentType();
+        if(ctype != null && ctype.getElements() != null) {
+            HeaderElement[] elems = ctype.getElements();
+            for(int i = 0; i < elems.length; i++) {
+                NameValuePair param = elems[i].getParameterByName("charset");
+                if(param != null) {
+                    charset = param.getValue();
+                    break;
+                }
+            }
+        }
+
+        // get content
+        InputStream content;
+        try {
+            content = entity.getContent();
+            if(content == null) {
+                return null;
+            }
+        }
+        catch(IllegalStateException e) {
+            e.printStackTrace();
+            return null;
+        }
+        catch(IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+
+        // todo: parse html and retrieve title
+
+        System.out.println("dbg: content-type: " + ctype);
+        System.out.println("dbg: charset: " + charset);
+        System.out.println("dbg: content: " + content);
+
         return null;
     }
 
@@ -637,30 +707,5 @@ public class SenderService extends Service
         intent.putExtra(EXTRA_MSG_STRING, msg);
         intent.putExtra(EXTRA_MSG_DURATION, Toast.LENGTH_LONG);
         startService(intent);
-    }
-
-    private class InfoLogHttpClient extends DefaultHttpClient
-    {
-        private StringBuilder info;
-
-        @Override
-        public RedirectHandler createRedirectHandler()
-        {
-            return new DefaultRedirectHandler() {
-                public URI getLocationURI(
-                    HttpResponse response, HttpContext context)
-                    throws ProtocolException {
-                    URI uri = super.getLocationURI(response, context);
-                    info.append(EXTRACT_SEP).append(uri);
-                    System.out.println("dbg: redirect: " + uri);
-                    return uri;
-                }
-            };
-        }
-
-        private void setInfoLog(StringBuilder info)
-        {
-            this.info = info;
-        }
     }
 }

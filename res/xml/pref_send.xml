@@ -68,6 +68,7 @@
 	   android:defaultValue="false" />
 	<CheckBoxPreference
 	   android:key="expand_title"
+	   android:dependency="expand_url"
 	   android:title="@string/title_pref_expand_title"
 	   android:summary="@string/summary_pref_expand_title"
 	   android:defaultValue="false" />
