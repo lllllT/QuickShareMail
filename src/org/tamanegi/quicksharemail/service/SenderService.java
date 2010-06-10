@@ -3,6 +3,9 @@ package org.tamanegi.quicksharemail.service;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.nio.charset.Charset;
 import java.util.Date;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.regex.Matcher;
@@ -20,6 +23,8 @@ import org.apache.http.ProtocolException;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.client.DefaultRedirectHandler;
+import org.apache.http.message.BasicHeader;
+import org.apache.http.params.HttpProtocolParams;
 import org.apache.http.protocol.HttpContext;
 import org.tamanegi.quicksharemail.R;
 import org.tamanegi.quicksharemail.content.MessageContent;
@@ -84,6 +89,20 @@ public class SenderService extends Service
     private static final Pattern URL_PATTERN =
         Pattern.compile("https?://[\\p{Alnum}-_.!~*'();\\/?:@=+$,%&#]*");
     private static final String EXTRACT_SEP = "\n-> ";
+
+    private static final int RETRIEVE_CONTENT_SIZE = 1024 * 32;
+    private static final Pattern RETRIEVE_CONTENT_META_PATTERN =
+        Pattern.compile(
+            "<meta(\\s[^>]*)?>", Pattern.CASE_INSENSITIVE);
+    private static final Pattern RETRIEVE_CONTENT_HTTPEQ_PATTERN =
+        Pattern.compile(
+            "http-equiv=\"?content-type\"?", Pattern.CASE_INSENSITIVE);
+    private static final Pattern RETRIEVE_CONTENT_CTYPE_PATTERN =
+        Pattern.compile(
+            "content=(?:\"([^\"]*)\"|([^\\s]*))", Pattern.CASE_INSENSITIVE);
+    private static final Pattern RETRIEVE_CONTENT_TITLE_PATTERN =
+        Pattern.compile(
+            "<title[^>]*>\\s*(.*)\\s*</title[^>]*>", Pattern.CASE_INSENSITIVE);
 
     private int req_cnt = 0;
     private int notif_cnt = 0;
@@ -498,7 +517,7 @@ public class SenderService extends Service
     private String retrieveLinkInfo(String text)
     {
         // check config
-        if(! setting.isExpandUrl()) {
+        if(! (setting.isExpandUrl() || setting.isRetrieveTitle())) {
             return null;
         }
 
@@ -507,6 +526,9 @@ public class SenderService extends Service
 
         // retrieve link info
         DefaultHttpClient http = new DefaultHttpClient();
+        HttpProtocolParams.setUserAgent(
+            http.getParams(), getString(R.string.http_user_agent)); // todo: get os version?
+
         try {
             while(matcher.find()) {
                 final StringBuilder link_info = new StringBuilder();
@@ -514,8 +536,13 @@ public class SenderService extends Service
                         public URI getLocationURI(
                             HttpResponse response, HttpContext context)
                             throws ProtocolException {
-                            URI uri = super.getLocationURI(response, context);
-                            link_info.append(EXTRACT_SEP).append(uri);
+                            URI uri =
+                                super.getLocationURI(response, context);
+                            if(setting.isExpandUrl()) {
+                                link_info.append(EXTRACT_SEP).append(uri);
+                            }
+
+                            updateRemainNotification();
                             return uri;
                         }
                     });
@@ -568,6 +595,7 @@ public class SenderService extends Service
         }
         finally {
             http.getConnectionManager().shutdown();
+            updateRemainNotification();
         }
 
         return info.toString();
@@ -585,25 +613,17 @@ public class SenderService extends Service
             return null;
         }
 
-        String charset = null;
-
         // get charset from HTTP header
-        Header ctype = entity.getContentType();
-        if(ctype != null && ctype.getElements() != null) {
-            HeaderElement[] elems = ctype.getElements();
-            for(int i = 0; i < elems.length; i++) {
-                NameValuePair param = elems[i].getParameterByName("charset");
-                if(param != null) {
-                    charset = param.getValue();
-                    break;
-                }
-            }
-        }
+        Charset charset =
+            getCharsetFromContentTypeHeader(entity.getContentType(),
+                                            Charset.defaultCharset());
+        System.out.println("dbg: charset: " + charset);
 
         // get content
         InputStream content;
         try {
             content = entity.getContent();
+            System.out.println("dbg: content: " + content);
             if(content == null) {
                 return null;
             }
@@ -617,13 +637,108 @@ public class SenderService extends Service
             return null;
         }
 
-        // todo: parse html and retrieve title
+        // get content bytes
+        ByteBuffer buf = ByteBuffer.allocate(RETRIEVE_CONTENT_SIZE);
+        byte[] buf_array = buf.array();
+        try {
+            while(buf.remaining() > 0) {
+                int len =
+                    content.read(buf_array, buf.position(), buf.remaining());
+                if(len < 0) {
+                    break;
+                }
 
-        System.out.println("dbg: content-type: " + ctype);
-        System.out.println("dbg: charset: " + charset);
-        System.out.println("dbg: content: " + content);
+                buf.position(buf.position() + len);
+            }
+        }
+        catch(IOException e) {
+            // ignore
+        }
+        buf.limit(buf.position());
 
-        return null;
+        System.out.println("dbg: buf: limit: " + buf.limit());
+
+        // decode bytes by charset/encoding
+        buf.rewind();
+        CharBuffer charbuf = charset.decode(buf);
+        System.out.println("dbg: charbuf: limit: " + charbuf.limit());
+
+        Matcher meta_matcher = RETRIEVE_CONTENT_META_PATTERN.matcher(charbuf);
+        while(meta_matcher.find()) {
+            String meta = meta_matcher.group(1);
+            if(meta == null ||
+               ! RETRIEVE_CONTENT_HTTPEQ_PATTERN.matcher(meta).find()) {
+                System.out.println("dbg: meta: not http-equiv: " + meta);
+                continue;
+            }
+
+            Matcher ctype_matcher =
+                RETRIEVE_CONTENT_CTYPE_PATTERN.matcher(meta);
+            if(! ctype_matcher.find()) {
+                System.out.println("dbg: meta: no content-type: " + meta);
+                continue;
+            }
+
+            String content_ctype_str = ctype_matcher.group(1);
+            if(content_ctype_str == null || content_ctype_str.length() == 0) {
+                content_ctype_str = ctype_matcher.group(2);
+            }
+            if(content_ctype_str == null || content_ctype_str.length() == 0) {
+                System.out.println("dbg: ctype: not found: " + meta);
+                break;
+            }
+            System.out.println("dbg: ctype: " + content_ctype_str);
+
+            // get charset from content, and decode again
+            Header content_ctype =
+                new BasicHeader("content-type", content_ctype_str);
+            charset =
+                getCharsetFromContentTypeHeader(content_ctype, charset);
+            System.out.println("dbg: charset: " + charset);
+            buf.rewind();
+            charbuf = charset.decode(buf);
+            System.out.println("dbg: charbuf: limit: " + charbuf.limit());
+            break;
+        }
+
+        // get title
+        Matcher title_matcher = RETRIEVE_CONTENT_TITLE_PATTERN.matcher(charbuf);
+        if(! title_matcher.find()) {
+            System.out.println("dbg: title not found");
+            return null;
+        }
+
+        String title = title_matcher.group(1);
+        System.out.println("dbg: title: " + title);
+        if(title == null || title.length() == 0) {
+            return null;
+        }
+
+        return title;
+    }
+
+    private Charset getCharsetFromContentTypeHeader(Header ctype, Charset def)
+    {
+        if(ctype != null) {
+            HeaderElement[] elems = ctype.getElements();
+            if(elems != null) {
+                for(int i = 0; i < elems.length; i++) {
+                    NameValuePair param =
+                        elems[i].getParameterByName("charset");
+                    if(param != null) {
+                        String charset_str = param.getValue();
+                        try {
+                            return Charset.forName(charset_str);
+                        }
+                        catch(Exception e) {
+                            // ignore
+                        }
+                    }
+                }
+            }
+        }
+
+        return def;
     }
 
     private void updateRemainNotification()

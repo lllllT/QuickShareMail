@@ -123,4 +123,6 @@
 
   <string name="initial_subject_format">[QuickShareMail %i] %t</string>
   <string name="initial_body_format">%f</string>
+
+  <string name="http_user_agent">QuickShareMail/0.2.1 (android)</string>
 </resources>
