@@ -45,8 +45,11 @@ import android.app.Service;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.content.pm.PackageManager.NameNotFoundException;
 import android.net.Uri;
+import android.os.Build;
 import android.os.IBinder;
 import android.os.PowerManager;
 import android.os.SystemClock;
@@ -102,7 +105,9 @@ public class SenderService extends Service
             "content=(?:\"([^\"]*)\"|([^\\s]*))", Pattern.CASE_INSENSITIVE);
     private static final Pattern RETRIEVE_CONTENT_TITLE_PATTERN =
         Pattern.compile(
-            "<title[^>]*>\\s*(.*)\\s*</title[^>]*>", Pattern.CASE_INSENSITIVE);
+            "<title[^>]*>\\s*(.*)\\s*</title[^>]*>",
+            Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+    private String http_user_agent = null;
 
     private int req_cnt = 0;
     private int notif_cnt = 0;
@@ -526,8 +531,7 @@ public class SenderService extends Service
 
         // retrieve link info
         DefaultHttpClient http = new DefaultHttpClient();
-        HttpProtocolParams.setUserAgent(
-            http.getParams(), getString(R.string.http_user_agent)); // todo: get os version?
+        HttpProtocolParams.setUserAgent(http.getParams(), getHttpUserAgent());
 
         try {
             while(matcher.find()) {
@@ -554,7 +558,6 @@ public class SenderService extends Service
                 HttpResponse response = null;
                 try {
                     try {
-                        System.out.println("dbg: link: " + link);
                         response = http.execute(new HttpGet(link));
                     }
                     catch(IOException e) {
@@ -617,13 +620,11 @@ public class SenderService extends Service
         Charset charset =
             getCharsetFromContentTypeHeader(entity.getContentType(),
                                             Charset.defaultCharset());
-        System.out.println("dbg: charset: " + charset);
 
         // get content
         InputStream content;
         try {
             content = entity.getContent();
-            System.out.println("dbg: content: " + content);
             if(content == null) {
                 return null;
             }
@@ -656,26 +657,21 @@ public class SenderService extends Service
         }
         buf.limit(buf.position());
 
-        System.out.println("dbg: buf: limit: " + buf.limit());
-
         // decode bytes by charset/encoding
         buf.rewind();
         CharBuffer charbuf = charset.decode(buf);
-        System.out.println("dbg: charbuf: limit: " + charbuf.limit());
 
         Matcher meta_matcher = RETRIEVE_CONTENT_META_PATTERN.matcher(charbuf);
         while(meta_matcher.find()) {
             String meta = meta_matcher.group(1);
             if(meta == null ||
                ! RETRIEVE_CONTENT_HTTPEQ_PATTERN.matcher(meta).find()) {
-                System.out.println("dbg: meta: not http-equiv: " + meta);
                 continue;
             }
 
             Matcher ctype_matcher =
                 RETRIEVE_CONTENT_CTYPE_PATTERN.matcher(meta);
             if(! ctype_matcher.find()) {
-                System.out.println("dbg: meta: no content-type: " + meta);
                 continue;
             }
 
@@ -684,37 +680,56 @@ public class SenderService extends Service
                 content_ctype_str = ctype_matcher.group(2);
             }
             if(content_ctype_str == null || content_ctype_str.length() == 0) {
-                System.out.println("dbg: ctype: not found: " + meta);
                 break;
             }
-            System.out.println("dbg: ctype: " + content_ctype_str);
 
             // get charset from content, and decode again
             Header content_ctype =
                 new BasicHeader("content-type", content_ctype_str);
             charset =
                 getCharsetFromContentTypeHeader(content_ctype, charset);
-            System.out.println("dbg: charset: " + charset);
             buf.rewind();
             charbuf = charset.decode(buf);
-            System.out.println("dbg: charbuf: limit: " + charbuf.limit());
             break;
         }
 
         // get title
         Matcher title_matcher = RETRIEVE_CONTENT_TITLE_PATTERN.matcher(charbuf);
         if(! title_matcher.find()) {
-            System.out.println("dbg: title not found");
             return null;
         }
 
         String title = title_matcher.group(1);
-        System.out.println("dbg: title: " + title);
         if(title == null || title.length() == 0) {
             return null;
         }
 
-        return title;
+        return title.replaceAll("\\s+", " ");
+    }
+
+    private String getHttpUserAgent()
+    {
+        if(http_user_agent == null) {
+            String pver = "unknown";
+            try {
+                PackageInfo pinfo = getPackageManager().getPackageInfo(
+                    getApplicationContext().getPackageName(), 0);
+                pver = pinfo.versionName;
+            }
+            catch(NameNotFoundException e) {
+                e.printStackTrace();
+                // ignore
+            }
+
+            http_user_agent =
+                getString(R.string.http_user_agent,
+                          pver,
+                          Build.VERSION.RELEASE,
+                          Build.MODEL,
+                          Build.ID);
+        }
+
+        return http_user_agent;
     }
 
     private Charset getCharsetFromContentTypeHeader(Header ctype, Charset def)

@@ -21,6 +21,9 @@
   <string name="msg_config_send_to">送信先の設定</string>
   <string name="msg_fail_request">リクエスト処理に失敗しました。</string>
 
+  <string name="title_pref_setting_cat">設定</string>
+  <string name="title_pref_operation_cat">操作</string>
+
   <string name="title_pref_send_from">送信元の設定</string>
   <string name="title_pref_mail_from">送信元E-mailアドレス</string>
   <string name="title_pref_smtp">SMTP設定</string>

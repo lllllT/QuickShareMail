@@ -1,81 +1,85 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
-  <PreferenceScreen android:title="@string/title_pref_send_from">
+  <PreferenceCategory android:title="@string/title_pref_setting_cat">
+	<PreferenceScreen android:title="@string/title_pref_send_from">
 
-	<EditTextPreference
-	   android:key="mail_from"
-	   android:title="@string/title_pref_mail_from"
-	   android:summary="@string/summary_def_pref_mail_from"
-	   android:inputType="textEmailAddress" />
-
-	<PreferenceCategory android:title="@string/title_pref_smtp">
 	  <EditTextPreference
-		 android:key="smtp_server"
-		 android:title="@string/title_pref_smtp_server"
-		 android:summary="@string/summary_def_pref_smtp_server"
-		 android:inputType="textUri" />
-	  <EditTextPreference
-		 android:key="smtp_port"
-		 android:title="@string/title_pref_smtp_port"
-		 android:summary="@string/summary_def_pref_smtp_port"
-		 android:numeric="integer"
-		 android:inputType="number" />
-	  <ListPreference
-		 android:key="smtp_sec"
-		 android:title="@string/title_pref_smtp_sec"
-		 android:entries="@array/entries_pref_smtp_sec"
-		 android:entryValues="@array/entryvalues_pref_smtp_sec" />
-	</PreferenceCategory>
+		 android:key="mail_from"
+		 android:title="@string/title_pref_mail_from"
+		 android:summary="@string/summary_def_pref_mail_from"
+		 android:inputType="textEmailAddress" />
 
-	<PreferenceCategory android:title="@string/title_pref_smtp_auth_cat">
+	  <PreferenceCategory android:title="@string/title_pref_smtp">
+		<EditTextPreference
+		   android:key="smtp_server"
+		   android:title="@string/title_pref_smtp_server"
+		   android:summary="@string/summary_def_pref_smtp_server"
+		   android:inputType="textUri" />
+		<EditTextPreference
+		   android:key="smtp_port"
+		   android:title="@string/title_pref_smtp_port"
+		   android:summary="@string/summary_def_pref_smtp_port"
+		   android:numeric="integer"
+		   android:inputType="number" />
+		<ListPreference
+		   android:key="smtp_sec"
+		   android:title="@string/title_pref_smtp_sec"
+		   android:entries="@array/entries_pref_smtp_sec"
+		   android:entryValues="@array/entryvalues_pref_smtp_sec" />
+	  </PreferenceCategory>
+
+	  <PreferenceCategory android:title="@string/title_pref_smtp_auth_cat">
+		<CheckBoxPreference
+		   android:key="smtp_auth"
+		   android:title="@string/title_pref_smtp_auth"
+		   android:summary="@string/summary_pref_smtp_auth" />
+		<EditTextPreference
+		   android:key="smtp_user"
+		   android:dependency="smtp_auth"
+		   android:title="@string/title_pref_smtp_user"
+		   android:summary="@string/summary_def_pref_smtp_user"
+		   android:singleLine="true" />
+		<org.tamanegi.quicksharemail.ui.EditTextRemPreference
+		   android:key="smtp_pass"
+		   android:dependency="smtp_auth"
+		   android:title="@string/title_pref_smtp_pass"
+		   android:summary="@string/summary_pref_smtp_pass"
+		   android:password="true"
+		   android:inputType="textPassword" />
+	  </PreferenceCategory>
+
+	</PreferenceScreen>
+
+	<PreferenceScreen android:title="@string/title_pref_send_to">
+	  <intent android:targetPackage="org.tamanegi.quicksharemail"
+			  android:targetClass="org.tamanegi.quicksharemail.ui.ConfigSendToActivity" />
+	</PreferenceScreen>
+
+	<PreferenceScreen android:title="@string/title_pref_misc">
 	  <CheckBoxPreference
-		 android:key="smtp_auth"
-		 android:title="@string/title_pref_smtp_auth"
-		 android:summary="@string/summary_pref_smtp_auth" />
-	  <EditTextPreference
-		 android:key="smtp_user"
-		 android:dependency="smtp_auth"
-		 android:title="@string/title_pref_smtp_user"
-		 android:summary="@string/summary_def_pref_smtp_user"
-		 android:singleLine="true" />
-	  <org.tamanegi.quicksharemail.ui.EditTextRemPreference
-		 android:key="smtp_pass"
-		 android:dependency="smtp_auth"
-		 android:title="@string/title_pref_smtp_pass"
-		 android:summary="@string/summary_pref_smtp_pass"
-		 android:password="true"
-		 android:inputType="textPassword" />
-	</PreferenceCategory>
+		 android:key="show_progress"
+		 android:title="@string/title_pref_show_progress"
+		 android:summary="@string/summary_pref_show_progress"
+		 android:defaultValue="true" />
+	  <CheckBoxPreference
+		 android:key="expand_url"
+		 android:title="@string/title_pref_expand_url"
+		 android:summary="@string/summary_pref_expand_url"
+		 android:defaultValue="false" />
+	  <CheckBoxPreference
+		 android:key="expand_title"
+		 android:title="@string/title_pref_expand_title"
+		 android:summary="@string/summary_pref_expand_title"
+		 android:defaultValue="false" />
+	</PreferenceScreen>
+  </PreferenceCategory>
 
-  </PreferenceScreen>
-
-  <PreferenceScreen android:title="@string/title_pref_send_to">
-	<intent android:targetPackage="org.tamanegi.quicksharemail"
-			android:targetClass="org.tamanegi.quicksharemail.ui.ConfigSendToActivity" />
-  </PreferenceScreen>
-
-  <PreferenceScreen android:title="@string/title_pref_misc">
-	<CheckBoxPreference
-	   android:key="show_progress"
-	   android:title="@string/title_pref_show_progress"
-	   android:summary="@string/summary_pref_show_progress"
-	   android:defaultValue="true" />
-	<CheckBoxPreference
-	   android:key="expand_url"
-	   android:title="@string/title_pref_expand_url"
-	   android:summary="@string/summary_pref_expand_url"
-	   android:defaultValue="false" />
-	<CheckBoxPreference
-	   android:key="expand_title"
-	   android:title="@string/title_pref_expand_title"
-	   android:summary="@string/summary_pref_expand_title"
-	   android:defaultValue="false" />
-  </PreferenceScreen>
-
-  <PreferenceScreen android:title="@string/title_retry_send">
-	<intent android:targetPackage="org.tamanegi.quicksharemail"
-			android:targetClass="org.tamanegi.quicksharemail.ui.RetrySendActivity" />
-  </PreferenceScreen>
+  <PreferenceCategory android:title="@string/title_pref_operation_cat">
+	<PreferenceScreen android:title="@string/title_retry_send">
+	  <intent android:targetPackage="org.tamanegi.quicksharemail"
+			  android:targetClass="org.tamanegi.quicksharemail.ui.RetrySendActivity" />
+	</PreferenceScreen>
+  </PreferenceCategory>
 
 </PreferenceScreen>

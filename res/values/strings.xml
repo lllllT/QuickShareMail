@@ -22,6 +22,9 @@
   <string name="msg_config_send_to">Configure Recipient</string>
   <string name="msg_fail_request">Failed to process request.</string>
 
+  <string name="title_pref_setting_cat">Setting</string>
+  <string name="title_pref_operation_cat">Operation</string>
+
   <string name="title_pref_send_from">Sender setting</string>
   <string name="title_pref_mail_from">Sender email address</string>
   <string name="title_pref_smtp">SMTP Setting</string>
@@ -124,5 +127,5 @@
   <string name="initial_subject_format">[QuickShareMail %i] %t</string>
   <string name="initial_body_format">%f</string>
 
-  <string name="http_user_agent">QuickShareMail/0.2.1 (android)</string>
+  <string name="http_user_agent">QuickShareMail/%1$s (Android %2$s; %3$s Build/%4$s)</string>
 </resources>
