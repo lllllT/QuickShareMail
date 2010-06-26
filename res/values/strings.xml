@@ -2,8 +2,8 @@
 <resources>
   <string name="app_name">QuickShareMail</string>
 
-  <string name="notify_remain">%1$d Email(s) are remaining, %2$d Emals(s) are waiting to resend.</string>
-  <string name="notify_remain_rest">%d Email(s) are remaining to send.</string>
+  <string name="notify_remain">Now sending %1$d Email(s), %2$d Emals(s) are waiting to resend.</string>
+  <string name="notify_remain_rest">Now sending %d Email(s).</string>
   <string name="notify_remain_retry">%d Email(s) are waiting to resend.</string>
   <string name="notify_invalid_addr">There is invalid recipient address.</string>
 

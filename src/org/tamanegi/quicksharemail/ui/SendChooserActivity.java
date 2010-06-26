@@ -1,5 +1,6 @@
 package org.tamanegi.quicksharemail.ui;
 
+import java.util.ArrayList;
 import java.util.Date;
 
 import org.tamanegi.quicksharemail.R;
@@ -14,7 +15,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.net.Uri;
+import android.os.Parcelable;
 
 public class SendChooserActivity extends Activity
 {
@@ -173,9 +174,28 @@ public class SendChooserActivity extends Activity
 
     private boolean pushMessage(Intent intent, SendToContent sendto)
     {
+        String action = intent.getAction();
         CharSequence text = intent.getCharSequenceExtra(Intent.EXTRA_TEXT);
-        Uri stream = (Uri)intent.getParcelableExtra(Intent.EXTRA_STREAM);
-        if(text == null && stream == null) {
+
+        ArrayList<Parcelable> uris = null;
+        if(Intent.ACTION_SEND.equals(action) &&
+           intent.hasExtra(Intent.EXTRA_STREAM)) {
+            Parcelable stream = intent.getParcelableExtra(Intent.EXTRA_STREAM);
+            if(stream != null) {
+                uris = new ArrayList<Parcelable>();
+                uris.add(stream);
+            }
+        }
+        if(Intent.ACTION_SEND_MULTIPLE.equals(action) &&
+           intent.hasExtra(Intent.EXTRA_STREAM)) {
+            ArrayList<Parcelable> stream =
+                intent.getParcelableArrayListExtra(Intent.EXTRA_STREAM);
+            if(stream != null) {
+                uris = stream;
+            }
+        }
+
+        if(text == null && uris == null) {
             return false;
         }
 
@@ -188,13 +208,18 @@ public class SendChooserActivity extends Activity
         if(text != null) {
             msg.setText(text.toString());
         }
-        if(stream != null) {
-            msg.setStream(stream.toString());
-        }
 
         MessageDB message_db = new MessageDB(this);
         try {
-            message_db.pushBack(msg);
+            if(uris == null) {
+                message_db.pushBack(msg);
+            }
+            else {
+                for(Parcelable stream : uris) {
+                    msg.setStream(stream.toString());
+                    message_db.pushBack(msg);
+                }
+            }
         }
         finally {
             message_db.close();

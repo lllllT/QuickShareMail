@@ -2,8 +2,8 @@
 <resources>
   <string name="app_name">QuickShareMail</string>
 
-  <string name="notify_remain">残り%1$d件のメールが送信待ち、%2$d件のメールが再送信待ちです。</string>
-  <string name="notify_remain_rest">残り%d件のメールが送信待ちです。</string>
+  <string name="notify_remain">%1$d件のメールを送信中、%2$d件のメールが再送信待ちです。</string>
+  <string name="notify_remain_rest">%d件のメールを送信中です。</string>
   <string name="notify_remain_retry">残り%d件のメールが再送信待ちです。</string>
   <string name="notify_invalid_addr">不正な送信先メールアドレスがありました。</string>
   <string name="msg_fail_send">メール送信に失敗しました。\n%s</string>
