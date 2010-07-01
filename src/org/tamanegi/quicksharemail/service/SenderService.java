@@ -105,7 +105,7 @@ public class SenderService extends Service
             "content=(?:\"([^\"]*)\"|([^\\s]*))", Pattern.CASE_INSENSITIVE);
     private static final Pattern RETRIEVE_CONTENT_TITLE_PATTERN =
         Pattern.compile(
-            "<title[^>]*>\\s*(.*)\\s*</title[^>]*>",
+            "<title[^>]*>\\s*(.*?)\\s*</title[^>]*>",
             Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
     private String http_user_agent = null;
 
