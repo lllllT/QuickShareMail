@@ -90,7 +90,7 @@ public class SenderService extends Service
     private static final int SNIP_LENGTH = 40;
 
     private static final Pattern URL_PATTERN =
-        Pattern.compile("https?://[\\p{Alnum}-_.!~*'();\\/?:@=+$,%&#]*");
+        Pattern.compile("https?://[\\p{Alnum}-_.!~*'();\\/?:@=+$,%&]*");
     private static final String EXTRACT_SEP = "\n-> ";
 
     private static final int RETRIEVE_CONTENT_SIZE = 1024 * 32;
