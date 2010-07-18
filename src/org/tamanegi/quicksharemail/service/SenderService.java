@@ -90,7 +90,7 @@ public class SenderService extends Service
     private static final int SNIP_LENGTH = 40;
 
     private static final Pattern URL_PATTERN =
-        Pattern.compile("https?://[\\p{Alnum}-_.!~*'();\\/?:@=+$,%&]*");
+        Pattern.compile("https?://[\\p{Alnum}-_.!~*'();\\/?:@=+$,%&#]*");
     private static final String EXTRACT_SEP = "\n-> ";
 
     private static final int RETRIEVE_CONTENT_SIZE = 1024 * 32;
@@ -458,7 +458,11 @@ public class SenderService extends Service
         catch(Exception e) {
             e.printStackTrace();
             // todo: err msg
-            showWarnToast(getString(R.string.msg_fail_send, e.getMessage()));
+            String str = e.getMessage();
+            if(str == null) {
+                str = e.getClass().getName();
+            }
+            showWarnToast(getString(R.string.msg_fail_send, str));
             return;
         }
     }
@@ -558,7 +562,10 @@ public class SenderService extends Service
                 HttpResponse response = null;
                 try {
                     try {
-                        response = http.execute(new HttpGet(link));
+                        int secidx = link.indexOf('#');
+                        String slink =
+                            (secidx >= 0 ? link.substring(0, secidx) : link);
+                        response = http.execute(new HttpGet(slink));
                     }
                     catch(IOException e) {
                         // just ignore
@@ -595,6 +602,10 @@ public class SenderService extends Service
                     }
                 }
             }
+        }
+        catch(Exception e) {
+            e.printStackTrace();
+            // ignore
         }
         finally {
             http.getConnectionManager().shutdown();
