@@ -11,7 +11,6 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.mail.MessagingException;
 import javax.mail.util.ByteArrayDataSource;
 
 import org.apache.http.Header;
@@ -176,12 +175,20 @@ public class SenderService extends Service
     @Override
     public void onStart(Intent intent, int startId)
     {
+        // enable network state receiver: befor process
+        getPackageManager().setComponentEnabledSetting(
+            new ComponentName(getApplicationContext(),
+                              NetworkStateChangeReceiver.class),
+            PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
+            PackageManager.DONT_KILL_APP);
+
+        // consume request
         req_cnt += processRequest(intent);
 
         if(req_cnt <= 0) {
             boolean need_retry = (message_db.getRetryCount() > 0);
 
-            // prepare network state receiver
+            // prepare network state receiver: after process
             getPackageManager().setComponentEnabledSetting(
                 new ComponentName(getApplicationContext(),
                                   NetworkStateChangeReceiver.class),
@@ -440,12 +447,6 @@ public class SenderService extends Service
             // send mail
             MailComposer composer = new MailComposer(smtp, mail);
             composer.send();
-        }
-        catch(MessagingException e) {
-            e.printStackTrace();
-            // todo: err msg
-            showWarnToast(getString(R.string.msg_fail_send, e.getMessage()));
-            return;
         }
         catch(SecurityException e) {
             e.printStackTrace();
