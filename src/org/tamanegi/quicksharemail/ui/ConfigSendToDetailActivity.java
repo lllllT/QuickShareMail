@@ -800,6 +800,10 @@ public class ConfigSendToDetailActivity extends ListActivity
             case R.id.menu_format_select_date:
                 insertEditTextString("%D");
                 return true;
+
+            case R.id.menu_format_select_entertext:
+                insertEditTextString("%r");
+                return true;
             }
             return super.onContextItemSelected(item);
         }

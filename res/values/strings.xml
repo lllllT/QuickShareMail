@@ -14,6 +14,7 @@
   <string name="address_separator">", "</string>
 
   <string name="title_select_sendto">Choose recipient</string>
+  <string name="title_enter_runtime_text">Enter text</string>
 
   <string name="msg_need_setup">Need to setup for sending.\nChange setting?</string>
   <string name="msg_sendto_notfound">Specified data type is not set to send.\nChange setting?\nData type : %s</string>
@@ -118,6 +119,7 @@
   <string name="menu_format_select_title">%t - \"%s\" or \"%f\"</string>
   <string name="menu_format_select_time">%T - Time \"hh:mm:ss\"</string>
   <string name="menu_format_select_date">%D - Date \"YYYY/MM/DD\"</string>
+  <string name="menu_format_select_entertext">%r - Entering text at run time</string>
 
   <string name="initial_label_text">Text</string>
   <string name="initial_label_image">Image</string>

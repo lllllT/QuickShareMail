@@ -12,4 +12,6 @@
 		android:id="@+id/menu_format_select_time" />
   <item android:title="@string/menu_format_select_date"
 		android:id="@+id/menu_format_select_date" />
+  <item android:title="@string/menu_format_select_entertext"
+		android:id="@+id/menu_format_select_entertext" />
 </menu>

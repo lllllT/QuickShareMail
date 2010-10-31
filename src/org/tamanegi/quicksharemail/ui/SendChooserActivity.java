@@ -10,12 +10,15 @@ import org.tamanegi.quicksharemail.content.SendSetting;
 import org.tamanegi.quicksharemail.content.SendToContent;
 import org.tamanegi.quicksharemail.content.SendToDB;
 import org.tamanegi.quicksharemail.service.SenderService;
+import org.tamanegi.util.StringCustomFormatter;
 
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Parcelable;
+import android.view.View;
+import android.widget.EditText;
 
 public class SendChooserActivity extends Activity
 {
@@ -159,9 +162,80 @@ public class SendChooserActivity extends Activity
             .show();
     }
 
+    private void enterTextAndStartAndFinish(final SendToContent sendto)
+    {
+        View view = getLayoutInflater().inflate(R.layout.dialog_edittext, null);
+        final EditText text_view =
+            (EditText)view.findViewById(R.id.dialog_edittext);
+        new AlertDialog.Builder(this)
+            .setTitle(R.string.title_enter_runtime_text)
+            .setView(view)
+            .setPositiveButton(
+                android.R.string.ok,
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog,
+                                        int whichButton) {
+                        dialog.dismiss();
+                        fillTextAndStartAndFinish(sendto, text_view.getText());
+                    }
+                })
+            .setNegativeButton(
+                android.R.string.cancel,
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog,
+                                        int whichButton) {
+                        dialog.dismiss();
+                        finish();
+                    }
+                })
+            .setOnCancelListener(
+                new DialogInterface.OnCancelListener() {
+                    public void onCancel(DialogInterface dialog) {
+                        dialog.dismiss();
+                        finish();
+                    }
+                })
+            .show();
+    }
+
+    private void fillTextAndStartAndFinish(SendToContent sendto,
+                                           CharSequence text)
+    {
+        String escaped_text = text.toString().replaceAll("%", "%%");
+        StringCustomFormatter formatter = new StringCustomFormatter(
+            new StringCustomFormatter.IdValue[] {
+                new StringCustomFormatter.IdValue('r', escaped_text),
+                new StringCustomFormatter.IdValue('%', "%%")
+            });
+
+        String subject = sendto.getSubjectFormat();
+        subject = formatter.format(subject);
+
+        String body = sendto.getBodyFormat();
+        body = formatter.format(body);
+
+        sendto.setSubjectFormat(subject);
+        sendto.setBodyFormat(body);
+
+        startAndFinish(sendto);
+    }
+
     private void startAndFinish(SendToContent sendto)
     {
-        if(! pushMessage(getIntent(), sendto)) {
+        Intent intent = getIntent();
+
+        // run-time text entry
+        String subject = sendto.getSubjectFormat();
+        String body = sendto.getBodyFormat();
+        if(subject.matches("(^|.*[^%])%r.*") ||
+           (intent.hasExtra(Intent.EXTRA_STREAM) &&
+            body.matches("(^|.*[^%])%r.*"))) {
+            enterTextAndStartAndFinish(sendto);
+            return;
+        }
+
+        // store data
+        if(! pushMessage(intent, sendto)) {
             showErrorAndFinish(R.string.msg_unsupported_intent);
             return;
         }

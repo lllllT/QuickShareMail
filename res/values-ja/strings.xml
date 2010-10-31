@@ -13,6 +13,7 @@
   <string name="address_separator">", "</string>
 
   <string name="title_select_sendto">送信先を選択</string>
+  <string name="title_enter_runtime_text">テキスト入力</string>
 
   <string name="msg_need_setup">送信設定が必要です。\n設定を行いますか？</string>
   <string name="msg_sendto_notfound">データタイプに対応する送信先が設定されていません。\n設定を行いますか？\nデータタイプ : %s</string>
@@ -117,6 +118,7 @@
   <string name="menu_format_select_title">%t - \"%s\" または \"%f\"</string>
   <string name="menu_format_select_time">%T - 時刻 hh:mm:ss</string>
   <string name="menu_format_select_date">%D - 日付 YYYY/MM/DD</string>
+  <string name="menu_format_select_entertext">%r - 実行時に入力するテキスト</string>
 
   <string name="initial_label_text">テキスト</string>
   <string name="initial_label_image">画像</string>

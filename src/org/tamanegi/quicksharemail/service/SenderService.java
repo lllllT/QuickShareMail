@@ -49,8 +49,11 @@ import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Bundle;
 import android.os.IBinder;
+import android.os.Parcelable;
 import android.os.PowerManager;
+import android.os.ResultReceiver;
 import android.os.SystemClock;
 import android.widget.Toast;
 
@@ -77,6 +80,8 @@ public class SenderService extends Service
 
     public static final String EXTRA_MSG_STRING = "notifyMsg";
     public static final String EXTRA_MSG_DURATION = "notifyDuration";
+
+    public static final String EXTRA_CALLBACK = "callback";
 
     private static final int NOTIFY_ID = 0;
 
@@ -113,12 +118,24 @@ public class SenderService extends Service
 
     private volatile boolean is_running = false;
     private Thread main_thread = null;
-    private LinkedBlockingQueue<Object> queue;
+    private LinkedBlockingQueue<RequestData> queue;
 
     private SendSetting setting;
     private MessageDB message_db;
 
     private PowerManager.WakeLock wakelock;
+
+    private class RequestData
+    {
+        private int req_type;
+        private Bundle extras;
+
+        private RequestData(int req_type, Bundle extras)
+        {
+            this.req_type = req_type;
+            this.extras = extras;
+        }
+    }
 
     @Override
     public IBinder onBind(Intent intent)
@@ -146,12 +163,19 @@ public class SenderService extends Service
                     mainLoop();
                 }
             });
-        queue = new LinkedBlockingQueue<Object>();
+        queue = new LinkedBlockingQueue<RequestData>();
 
         main_thread.start();
 
         // for service restart time
         req_cnt = pushRequest(REQUEST_TYPE_START);
+
+        // enable network state receiver: at first
+        getPackageManager().setComponentEnabledSetting(
+            new ComponentName(getApplicationContext(),
+                              NetworkStateChangeReceiver.class),
+            PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
+            PackageManager.DONT_KILL_APP);
     }
 
     @Override
@@ -175,20 +199,13 @@ public class SenderService extends Service
     @Override
     public void onStart(Intent intent, int startId)
     {
-        // enable network state receiver: befor process
-        getPackageManager().setComponentEnabledSetting(
-            new ComponentName(getApplicationContext(),
-                              NetworkStateChangeReceiver.class),
-            PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
-            PackageManager.DONT_KILL_APP);
-
         // consume request
         req_cnt += processRequest(intent);
 
         if(req_cnt <= 0) {
             boolean need_retry = (message_db.getRetryCount() > 0);
 
-            // prepare network state receiver: after process
+            // prepare network state receiver: at end
             getPackageManager().setComponentEnabledSetting(
                 new ComponentName(getApplicationContext(),
                                   NetworkStateChangeReceiver.class),
@@ -223,8 +240,13 @@ public class SenderService extends Service
 
     private int pushRequest(int req_type)
     {
+        return pushRequest(req_type, null);
+    }
+
+    private int pushRequest(int req_type, Bundle extras)
+    {
         try {
-            queue.put(new Integer(req_type));
+            queue.put(new RequestData(req_type, extras));
             return 1;
         }
         catch(InterruptedException e) {
@@ -238,21 +260,21 @@ public class SenderService extends Service
         }
     }
 
-    private int popRequest() throws InterruptedException
+    private RequestData popRequest() throws InterruptedException
     {
-        return ((Integer)queue.take()).intValue();
+        return queue.take();
     }
 
     private void mainLoop()
     {
         try {
             while(is_running) {
-                int req = popRequest();
+                RequestData req = popRequest();
                 if(! is_running) {
                     return;
                 }
 
-                switch(req) {
+                switch(req.req_type) {
                 case REQUEST_TYPE_STOP:
                     return;
 
@@ -267,6 +289,14 @@ public class SenderService extends Service
 
                 wakelock.acquire();
                 try {
+                    // notify via callback
+                    if(req.extras != null) {
+                        Parcelable e = req.extras.getParcelable(EXTRA_CALLBACK);
+                        if(e != null && e instanceof ResultReceiver) {
+                            ((ResultReceiver)e).send(0, null);
+                        }
+                    }
+
                     while(is_running) {
                         // show remaining
                         updateRemainNotification();
@@ -309,13 +339,13 @@ public class SenderService extends Service
         String action = intent.getAction();
 
         if(ACTION_ENQUEUE.equals(action)) {
-            return pushRequest(REQUEST_TYPE_ENQUEUE);
+            return pushRequest(REQUEST_TYPE_ENQUEUE, intent.getExtras());
         }
         else if(ACTION_RETRY.equals(action)) {
-            return pushRequest(REQUEST_TYPE_RETRY);
+            return pushRequest(REQUEST_TYPE_RETRY, intent.getExtras());
         }
         else if(ACTION_DELETE_ALL.equals(action)) {
-            return pushRequest(REQUEST_TYPE_DELETE_ALL);
+            return pushRequest(REQUEST_TYPE_DELETE_ALL, intent.getExtras());
         }
         else if(ACTION_SHOW_TOAST.equals(action)) {
             Toast.makeText(getApplicationContext(),
