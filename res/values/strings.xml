@@ -113,20 +113,20 @@
 
   <string name="text_format_select">...</string>
   <string name="title_format_select">Select format string</string>
-  <string name="menu_format_select_seqid">%i - Sequential number</string>
-  <string name="menu_format_select_snipbody">%s - First 40 characters of message body</string>
-  <string name="menu_format_select_filename">%f - File name</string>
-  <string name="menu_format_select_title">%t - \"%s\" or \"%f\"</string>
-  <string name="menu_format_select_time">%T - Time \"hh:mm:ss\"</string>
-  <string name="menu_format_select_date">%D - Date \"YYYY/MM/DD\"</string>
-  <string name="menu_format_select_entertext">%r - Entering text at run time</string>
+  <string name="menu_format_select_seqid" formatted="false">%i - Sequential number</string>
+  <string name="menu_format_select_snipbody" formatted="false">%s - First 40 characters of message body</string>
+  <string name="menu_format_select_filename" formatted="false">%f - File name</string>
+  <string name="menu_format_select_title" formatted="false">%t - \"%s\" or \"%f\"</string>
+  <string name="menu_format_select_time" formatted="false">%T - Time \"hh:mm:ss\"</string>
+  <string name="menu_format_select_date" formatted="false">%D - Date \"YYYY/MM/DD\"</string>
+  <string name="menu_format_select_entertext" formatted="false">%r - Entering text at run time</string>
 
   <string name="initial_label_text">Text</string>
   <string name="initial_label_image">Image</string>
   <string name="initial_label_movie">Video</string>
   <string name="initial_label_any">Any type</string>
 
-  <string name="initial_subject_format">[QuickShareMail %i] %t</string>
+  <string name="initial_subject_format" formatted="false">[QuickShareMail %i] %t</string>
   <string name="initial_body_format">%f</string>
 
   <string name="http_user_agent">QuickShareMail/%1$s (Android %2$s; %3$s Build/%4$s)</string>

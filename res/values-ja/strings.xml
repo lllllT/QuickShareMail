@@ -112,13 +112,13 @@
 
   <string name="text_format_select">...</string>
   <string name="title_format_select">フォーマット文字列の選択</string>
-  <string name="menu_format_select_seqid">%i - 通し番号</string>
-  <string name="menu_format_select_snipbody">%s - 本文の先頭40文字</string>
-  <string name="menu_format_select_filename">%f - ファイル名</string>
-  <string name="menu_format_select_title">%t - \"%s\" または \"%f\"</string>
-  <string name="menu_format_select_time">%T - 時刻 hh:mm:ss</string>
-  <string name="menu_format_select_date">%D - 日付 YYYY/MM/DD</string>
-  <string name="menu_format_select_entertext">%r - 実行時に入力するテキスト</string>
+  <string name="menu_format_select_seqid" formatted="false">%i - 通し番号</string>
+  <string name="menu_format_select_snipbody" formatted="false">%s - 本文の先頭40文字</string>
+  <string name="menu_format_select_filename" formatted="false">%f - ファイル名</string>
+  <string name="menu_format_select_title" formatted="false">%t - \"%s\" または \"%f\"</string>
+  <string name="menu_format_select_time" formatted="false">%T - 時刻 hh:mm:ss</string>
+  <string name="menu_format_select_date" formatted="false">%D - 日付 YYYY/MM/DD</string>
+  <string name="menu_format_select_entertext" formatted="false">%r - 実行時に入力するテキスト</string>
 
   <string name="initial_label_text">テキスト</string>
   <string name="initial_label_image">画像</string>
