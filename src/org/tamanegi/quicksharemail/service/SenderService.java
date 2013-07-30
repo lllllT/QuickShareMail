@@ -847,7 +847,6 @@ public class SenderService extends Service
     {
         long when = System.currentTimeMillis();
         Notification notify = new Notification(icon, ticker_text, when);
-        notify.iconLevel = icon_level;
 
         Intent intent = new Intent(getApplicationContext(), activity_class);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -857,6 +856,7 @@ public class SenderService extends Service
                                   content_title,
                                   content_text,
                                   content_intent);
+        notify.iconLevel = icon_level;
         notify.flags = flags;
 
         NotificationManager nm = (NotificationManager)
